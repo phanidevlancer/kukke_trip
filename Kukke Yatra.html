@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kukke Subramanya Yatra — Trip Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Mukta:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF4E6;
+    --paper-2:#F4E9D2;
+    --card:#FFFDF7;
+    --ink:#2C1A12;
+    --ink-soft:#6B5544;
+    --line:#E3D3B4;
+    --vermilion:#9E2B1E;
+    --vermilion-soft:#C24B33;
+    --saffron:#D2762A;
+    --gold:#B6892F;
+    --gold-soft:#D9B864;
+    --leaf:#5E6B3B;
+    --shadow:0 1px 2px rgba(44,26,18,.05),0 8px 28px rgba(44,26,18,.07);
+    --shadow-lg:0 2px 6px rgba(44,26,18,.08),0 24px 60px rgba(44,26,18,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Mukta',system-ui,sans-serif;
+    background:
+      radial-gradient(120% 60% at 50% -10%, #FFF8EA 0%, transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:64px;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px;}
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    position:relative;
+    text-align:center;
+    padding:54px 20px 40px;
+    overflow:hidden;
+  }
+  .kicker{
+    font-size:13px;letter-spacing:.34em;text-transform:uppercase;
+    color:var(--vermilion);font-weight:600;
+    display:flex;align-items:center;justify-content:center;gap:14px;
+  }
+  .kicker::before,.kicker::after{content:"";height:1px;width:34px;background:var(--gold-soft);}
+  .hero h1{
+    font-family:'Marcellus',serif;
+    font-weight:400;
+    font-size:clamp(38px,8vw,68px);
+    line-height:1.02;
+    margin:14px 0 6px;
+    color:var(--ink);
+  }
+  .hero h1 .om{display:block;font-size:.42em;color:var(--saffron);letter-spacing:.18em;margin-bottom:8px;}
+  .hero .sub{
+    font-family:'Marcellus',serif;
+    font-size:clamp(17px,3.4vw,22px);
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+  .route-pill{
+    display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 12px;
+    margin-top:26px;padding:12px 20px;
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    box-shadow:var(--shadow);font-size:14.5px;color:var(--ink-soft);font-weight:500;
+  }
+  .route-pill b{color:var(--ink);font-weight:600;}
+  .route-pill .arr{color:var(--gold);font-weight:700;}
+  .facts{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px;
+  }
+  .fact{
+    background:var(--paper-2);border:1px solid var(--line);border-radius:10px;
+    padding:9px 15px;font-size:13.5px;color:var(--ink-soft);
+  }
+  .fact b{color:var(--ink);font-weight:600;}
+
+  /* ---------- SECTION HEADERS ---------- */
+  .sec-head{margin:46px 0 18px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .sec-head h2{
+    font-family:'Marcellus',serif;font-weight:400;font-size:27px;color:var(--ink);
+    display:flex;align-items:center;gap:12px;
+  }
+  .sec-head h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--vermilion);}
+  .sec-head .note{font-size:13px;color:var(--ink-soft);}
+
+  /* ---------- TIMELINE ---------- */
+  .day{margin-bottom:14px;}
+  .day-label{
+    display:flex;align-items:center;gap:12px;margin:26px 0 14px;
+  }
+  .day-label .d{
+    font-family:'Marcellus',serif;font-size:15px;color:#fff;background:var(--vermilion);
+    width:46px;height:46px;border-radius:12px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;line-height:1;box-shadow:var(--shadow);
+  }
+  .day-label .d span{font-size:9px;letter-spacing:.1em;opacity:.8;margin-bottom:2px;}
+  .day-label .d b{font-size:19px;font-weight:400;}
+  .day-label .dl{font-family:'Marcellus',serif;font-size:18px;color:var(--ink);}
+  .day-label .dl small{display:block;font-family:'Mukta';font-size:12.5px;color:var(--ink-soft);letter-spacing:.02em;}
+
+  .leg{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:18px 20px;margin-bottom:12px;position:relative;
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .leg:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+  .leg.hotel{border-left:4px solid var(--leaf);}
+  .leg.train{border-left:4px solid var(--saffron);}
+  .leg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .leg-mode{
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+    display:flex;align-items:center;gap:7px;color:var(--saffron);
+  }
+  .leg.hotel .leg-mode{color:var(--leaf);}
+  .leg-mode svg{width:16px;height:16px;}
+  .badge{
+    font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 10px;border-radius:999px;
+    text-transform:uppercase;white-space:nowrap;
+  }
+  .badge.wl{background:#FBE7DF;color:#A23A24;}
+  .badge.partial{background:#FBF1D8;color:#9A7414;}
+  .badge.cnf{background:#E2EFD9;color:#41662A;}
+
+  .od{display:flex;align-items:center;gap:14px;margin:14px 0 4px;}
+  .od .stn{flex:1;min-width:0;}
+  .od .time{font-family:'Marcellus',serif;font-size:24px;color:var(--ink);line-height:1;}
+  .od .stn .name{font-size:14px;font-weight:600;color:var(--ink);margin-top:5px;}
+  .od .stn .code{font-size:12px;color:var(--ink-soft);letter-spacing:.05em;}
+  .od .stn.right{text-align:right;}
+  .od .mid{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:96px;}
+  .od .mid .dur{font-size:12px;color:var(--ink-soft);font-weight:600;background:var(--paper-2);padding:2px 9px;border-radius:999px;}
+  .od .mid .track{display:flex;align-items:center;width:100%;color:var(--gold-soft);}
+  .od .mid .track .ln{flex:1;height:2px;background:repeating-linear-gradient(90deg,var(--gold-soft) 0 5px,transparent 5px 10px);}
+  .od .mid .track .dotc{width:7px;height:7px;border-radius:50%;border:2px solid var(--gold);background:var(--card);}
+
+  .leg-meta{
+    display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:14px;padding-top:13px;border-top:1px dashed var(--line);
+  }
+  .chip{font-size:12px;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:4px 9px;}
+  .chip b{color:var(--ink);font-weight:600;}
+  .leg .fare{font-family:'Marcellus',serif;font-size:18px;color:var(--vermilion);}
+
+  .hotel-body{display:flex;gap:16px;align-items:flex-start;margin-top:12px;flex-wrap:wrap;}
+  .hotel-body .hb-main{flex:1;min-width:200px;}
+  .hotel-body h3{font-family:'Marcellus',serif;font-weight:400;font-size:21px;color:var(--ink);}
+  .hotel-body .addr{font-size:13px;color:var(--ink-soft);margin-top:3px;}
+  .nights{
+    background:var(--leaf);color:#fff;border-radius:12px;padding:10px 16px;text-align:center;
+  }
+  .nights b{font-family:'Marcellus';font-size:22px;display:block;line-height:1;}
+  .nights span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;}
+
+  /* ---------- ALERT ---------- */
+  .alert{
+    background:linear-gradient(180deg,#FCEFE8,#FBE7DD);border:1px solid #ECC3B2;
+    border-radius:14px;padding:16px 18px;margin-top:8px;display:flex;gap:13px;align-items:flex-start;
+  }
+  .alert svg{width:22px;height:22px;flex-shrink:0;color:var(--vermilion);margin-top:1px;}
+  .alert .t{font-weight:700;color:var(--vermilion);font-size:14px;}
+  .alert p{font-size:13.5px;color:#7A3322;margin-top:2px;}
+
+  /* ---------- PLAN / LOGISTICS CARD ---------- */
+  .plan{
+    background:linear-gradient(180deg,#FFFDF7,#FAF1DD);border:1px solid var(--line);
+    border-radius:16px;padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow);
+  }
+  .plan.leaf{border-left:4px solid var(--leaf);}
+  .plan.gold{border-left:4px solid var(--gold);}
+  .plan-head{display:flex;gap:13px;align-items:flex-start;}
+  .plan-head svg{width:22px;height:22px;flex-shrink:0;color:var(--gold);margin-top:1px;}
+  .plan.leaf .plan-head svg{color:var(--leaf);}
+  .plan-head .t{font-family:'Marcellus',serif;font-size:18px;color:var(--ink);line-height:1.2;}
+  .plan-head p{font-size:13.5px;color:var(--ink-soft);margin-top:4px;}
+  .plan-head p b{color:var(--ink);font-weight:600;}
+
+  .lunch{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  .lunch-opt{
+    flex:1;min-width:180px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:11px 14px;position:relative;
+  }
+  .lunch-opt .lo-name{font-weight:700;font-size:14.5px;color:var(--vermilion);display:flex;align-items:center;gap:7px;}
+  .lunch-opt .lo-name::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--saffron);}
+  .lunch-opt .lo-meta{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .lunch-note{font-size:12px;color:var(--ink-soft);text-align:center;margin-top:8px;font-style:italic;}
+
+  .minirow{display:flex;gap:12px;align-items:flex-start;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);}
+  .minirow:first-of-type{border-top:none;}
+  .ministeps{margin-top:14px;}
+  .ms{display:grid;grid-template-columns:62px 1fr;gap:12px;align-items:baseline;padding:7px 0;border-top:1px dashed var(--line);}
+  .ms:first-child{border-top:none;}
+  .ms .mt{font-family:'Marcellus',serif;font-size:15px;color:var(--vermilion);white-space:nowrap;}
+  .ms .mtxt{font-size:13.5px;color:var(--ink);}
+  .ms .mtxt b{font-weight:600;}
+  .ms .mtxt small{display:block;color:var(--ink-soft);font-size:12px;margin-top:1px;}
+  .traffic{
+    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:#9A7414;
+    background:#FBF1D8;border-radius:999px;padding:3px 10px;margin-top:2px;
+  }
+  .traffic svg{width:13px;height:13px;}
+
+  .home-note{
+    display:flex;gap:11px;align-items:center;background:var(--paper-2);border:1px dashed var(--line);
+    border-radius:12px;padding:11px 15px;margin-bottom:12px;font-size:13px;color:var(--ink-soft);
+  }
+  .home-note svg{width:18px;height:18px;color:var(--vermilion);flex-shrink:0;}
+  .home-note b{color:var(--ink);font-weight:600;}
+
+  /* ---------- PNR PANEL ---------- */
+  .pnrcard{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-lg);overflow:hidden;
+  }
+  .pnr-banner{
+    background:linear-gradient(135deg,var(--gold),var(--saffron));color:#fff;padding:15px 22px;
+    display:flex;gap:12px;align-items:center;
+  }
+  .pnr-banner svg{width:22px;height:22px;flex-shrink:0;}
+  .pnr-banner .t{font-family:'Marcellus',serif;font-size:18px;line-height:1.15;}
+  .pnr-banner .t small{display:block;font-family:'Mukta';font-size:12px;opacity:.9;font-weight:400;letter-spacing:.01em;}
+  .pnr-row{
+    display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+    padding:14px 22px;border-bottom:1px solid var(--line);
+  }
+  .pnr-row:last-child{border-bottom:none;}
+  .pnr-item:last-child .pnr-row{border-bottom:none;}
+  .pnr-item.open .pnr-row{border-bottom:none;}
+  .pnr-info{min-width:0;}
+  .pnr-info .tr{font-weight:600;font-size:14px;color:var(--ink);}
+  .pnr-info .num{font-family:'Marcellus',serif;font-size:18px;color:var(--vermilion);letter-spacing:.04em;margin-top:1px;}
+  .pnr-info .st{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .pnr-copy{
+    background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:8px 13px;cursor:pointer;
+    font-family:'Mukta';font-size:12.5px;color:var(--ink-soft);font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap;
+  }
+  .pnr-copy:hover{border-color:var(--saffron);color:var(--saffron);}
+  .pnr-copy svg{width:14px;height:14px;}
+  .pnr-copy.ok{border-color:var(--leaf);color:var(--leaf);}
+  .pnr-check{
+    background:var(--vermilion);color:#fff;border:none;border-radius:9px;padding:9px 15px;cursor:pointer;
+    font-family:'Mukta';font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap;text-decoration:none;
+  }
+  .pnr-check:hover{background:var(--vermilion-soft);}
+  .pnr-check svg{width:14px;height:14px;}
+  .pnr-live{
+    background:var(--leaf);color:#fff;border:none;border-radius:9px;padding:9px 15px;cursor:pointer;
+    font-family:'Mukta';font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;transition:.15s;white-space:nowrap;align-self:flex-start;
+  }
+  .pnr-live:hover{filter:brightness(1.08);}
+  .pnr-live:disabled{opacity:.6;cursor:default;}
+  .pnr-live svg{width:14px;height:14px;}
+  .spin{animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .leg-pnr{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line);display:flex;flex-direction:column;}
+
+  .mapln{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:21px;height:21px;border-radius:6px;color:var(--gold);background:var(--paper-2);border:1px solid var(--line);margin-left:7px;transition:.15s;text-decoration:none;}
+  .mapln:hover{color:#fff;background:var(--saffron);border-color:var(--saffron);}
+  .mapln svg{width:12px;height:12px;}
+  .pnr-result{max-height:0;overflow:hidden;transition:max-height .38s ease;}
+  .leg-pnr.open .pnr-result{max-height:1200px;margin-top:14px;}
+  .res-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px;}
+  .res-grid .rc{background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px 11px;font-size:12px;color:var(--ink-soft);}
+  .res-grid .rc b{display:block;color:var(--ink);font-size:13.5px;font-weight:600;margin-top:1px;}
+  .chart{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;margin-bottom:12px;}
+  .chart.prep{background:#E2EFD9;color:#41662A;}
+  .chart.notprep{background:#FBF1D8;color:#9A7414;}
+  .pax{display:flex;flex-direction:column;gap:8px;}
+  .pax-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px 14px;}
+  .pax-row .pno{width:30px;height:30px;border-radius:8px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;font-family:'Marcellus';font-size:14px;color:var(--ink);flex-shrink:0;}
+  .pax-row .pdesc{flex:1;min-width:0;}
+  .pax-row .pdesc .bk{font-size:11.5px;color:var(--ink-soft);}
+  .pax-row .pdesc .cur{font-weight:700;font-size:15px;color:var(--ink);margin-top:1px;}
+  .pax-stat{font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 11px;border-radius:999px;text-transform:uppercase;white-space:nowrap;}
+  .pax-stat.cnf{background:#E2EFD9;color:#41662A;}
+  .pax-stat.wl{background:#FBE7DF;color:#A23A24;}
+  .pax-stat.rac{background:#FBF1D8;color:#9A7414;}
+  .pax-stat.un{background:var(--paper-2);color:var(--ink-soft);}
+  .res-err{font-size:13px;color:#A23A24;background:#FBE7DF;border:1px solid #ECC3B2;border-radius:10px;padding:11px 13px;}
+  .res-err a{color:var(--vermilion);font-weight:600;}
+  .res-time{font-size:11px;color:var(--ink-soft);margin-top:11px;text-align:right;}
+  .pnr-foot{padding:12px 22px;background:var(--paper-2);font-size:12px;color:var(--ink-soft);display:flex;gap:9px;align-items:flex-start;}
+  .pnr-foot svg{width:15px;height:15px;flex-shrink:0;color:var(--gold);margin-top:1px;}
+  .pnr-manual{display:flex;gap:8px;padding:13px 22px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);}
+  .pnr-manual input{flex:1;min-width:150px;font-family:'Mukta';font-size:14px;border:1px solid var(--line);border-radius:9px;padding:9px 12px;background:var(--paper);color:var(--ink);letter-spacing:.06em;}
+  .pnr-manual input:focus{outline:none;border-color:var(--saffron);background:#fff;}
+  .pnr-manual button{background:var(--gold);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:600;font-size:14px;cursor:pointer;font-family:'Mukta';}
+  .pnr-manual button:hover{background:var(--saffron);}
+  @media (max-width:560px){
+    .pnr-row{grid-template-columns:1fr auto;}
+    .pnr-check{grid-column:2;}
+    .pnr-copy{grid-column:1;justify-self:start;}
+  }
+
+  /* ---------- MAPS / LOCATIONS ---------- */
+  .maps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;}
+  .mgroup{margin-bottom:6px;}
+  .mgroup-label{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--ink-soft);margin:18px 0 10px;display:flex;align-items:center;gap:9px;}
+  .mgroup-label::after{content:"";flex:1;height:1px;background:var(--line);}
+  .mcard{
+    display:flex;gap:12px;align-items:center;text-decoration:none;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px;
+    box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease,border-color .16s;
+  }
+  .mcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--gold-soft);}
+  .mpin{width:40px;height:40px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;}
+  .mpin svg{width:20px;height:20px;}
+  .mpin.stn{background:var(--saffron);}
+  .mpin.tmp{background:var(--vermilion);}
+  .mpin.stay{background:var(--leaf);}
+  .mpin.food{background:var(--gold);}
+  .mcard .mtext{min-width:0;flex:1;}
+  .mcard .mn{font-weight:600;font-size:14px;color:var(--ink);line-height:1.2;}
+  .mcard .msub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .mcard .mgo{flex-shrink:0;color:var(--gold);display:flex;align-items:center;}
+  .mcard .mgo svg{width:17px;height:17px;}
+  .maps-note{font-size:12px;color:var(--ink-soft);font-style:italic;margin-top:12px;text-align:center;}
+
+  /* ---------- EXPENSE TRACKER ---------- */
+  .tracker{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow-lg);overflow:hidden;
+  }
+  .tracker-head{
+    background:linear-gradient(135deg,var(--vermilion),var(--vermilion-soft));
+    color:#fff;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  }
+  .tracker-head .lt .l{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;opacity:.82;}
+  .tracker-head .lt .v{font-family:'Marcellus',serif;font-size:38px;line-height:1;margin-top:4px;}
+  .tracker-head .split{display:flex;gap:10px;}
+  .tracker-head .split .s{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:9px 14px;text-align:center;min-width:96px;}
+  .tracker-head .split .s .nm{font-size:11px;opacity:.85;}
+  .tracker-head .split .s .am{font-family:'Marcellus';font-size:19px;margin-top:2px;}
+
+  .twrap{padding:6px 0 4px;}
+  .erow{
+    display:grid;grid-template-columns:26px 1fr auto auto;gap:12px;align-items:center;
+    padding:13px 22px;border-bottom:1px solid var(--line);transition:background .15s;
+  }
+  .erow:hover{background:var(--paper);}
+  .erow.done .e-name,.erow.done .e-amt{opacity:.5;}
+  .erow.done .e-name .nm{text-decoration:line-through;}
+  .e-check{
+    width:22px;height:22px;border-radius:7px;border:2px solid var(--line);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--paper);transition:.15s;
+  }
+  .erow.done .e-check{background:var(--leaf);border-color:var(--leaf);}
+  .e-check svg{width:13px;height:13px;color:#fff;opacity:0;transition:.15s;}
+  .erow.done .e-check svg{opacity:1;}
+  .e-name{min-width:0;}
+  .e-name .nm{font-weight:600;font-size:14.5px;color:var(--ink);}
+  .e-name .ct{font-size:11.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px;margin-top:1px;}
+  .e-name .ct .tag{display:inline-block;width:7px;height:7px;border-radius:50%;}
+  .e-amt{font-family:'Marcellus',serif;font-size:17px;color:var(--ink);white-space:nowrap;}
+  .e-amt input{
+    font-family:'Marcellus',serif;font-size:17px;color:var(--ink);width:96px;text-align:right;
+    border:1px solid var(--line);border-radius:8px;padding:5px 8px;background:var(--paper);
+  }
+  .e-amt input:focus{outline:none;border-color:var(--saffron);background:#fff;}
+  .e-del{
+    background:none;border:none;cursor:pointer;color:var(--ink-soft);opacity:.4;padding:4px;border-radius:6px;
+    display:flex;transition:.15s;
+  }
+  .e-del:hover{opacity:1;color:var(--vermilion);background:#FBE7DF;}
+  .e-del svg{width:16px;height:16px;}
+
+  .add-bar{display:flex;gap:8px;padding:14px 22px;flex-wrap:wrap;align-items:center;background:var(--paper-2);}
+  .add-bar input,.add-bar select{
+    font-family:'Mukta';font-size:14px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff;color:var(--ink);
+  }
+  .add-bar .a-name{flex:1;min-width:130px;}
+  .add-bar .a-amt{width:108px;}
+  .add-bar .a-cat{min-width:120px;}
+  .add-bar .a-add{
+    background:var(--vermilion);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:600;
+    font-size:14px;cursor:pointer;font-family:'Mukta';transition:.15s;
+  }
+  .add-bar .a-add:hover{background:var(--vermilion-soft);}
+
+  .tfoot{padding:14px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);}
+  .tfoot .legend{display:flex;flex-wrap:wrap;gap:12px;}
+  .tfoot .legend i{display:inline-flex;align-items:center;gap:6px;font-style:normal;}
+  .tfoot .legend i b{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .tfoot .reset{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 13px;cursor:pointer;color:var(--ink-soft);font-family:'Mukta';font-size:12.5px;}
+  .tfoot .reset:hover{border-color:var(--vermilion);color:var(--vermilion);}
+  .paidnote{font-size:12.5px;color:var(--leaf);font-weight:600;}
+
+  footer.foot{text-align:center;margin-top:54px;color:var(--ink-soft);font-size:13px;}
+  footer.foot .om2{font-family:'Marcellus';color:var(--saffron);font-size:20px;letter-spacing:.2em;}
+
+  @media (max-width:560px){
+    .od .time{font-size:20px;}
+    .erow{grid-template-columns:24px 1fr auto;gap:9px;padding:12px 16px;}
+    .e-del{grid-column:3;grid-row:1;}
+    .e-amt{grid-column:2/4;justify-self:end;}
+    .tracker-head .lt .v{font-size:32px;}
+    .add-bar{padding:14px 16px;}
+  }
+</style>
+</head>
+<body>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" fill="#9E2B1E"/>
+  <text x="50" y="64" font-family="serif" font-size="46" fill="#F4E9D2" text-anchor="middle">&#2384;</text>
+</svg>
+</template>
+
+
+<header class="hero">
+  <div class="kicker">Pilgrimage · June 2026</div>
+  <h1><span class="om">ॐ शरवणभव</span>Kukke Subramanya<br>Yatra</h1>
+  <div class="sub">Hyderabad to the abode of Sri Subramanya & back</div>
+
+  <div class="route-pill">
+    <b>Hyderabad</b><span class="arr">→</span><b>Bengaluru</b><span class="arr">→</span><b>Kukke</b><span class="arr">→</span><b>Bengaluru</b><span class="arr">→</span><b>Hyderabad</b>
+  </div>
+  <div class="facts">
+    <div class="fact"><b>Jun 1 – Jun 4, 2026</b> · 4 days</div>
+    <div class="fact">Travellers · <b>Phanindra &amp; Mounika</b></div>
+    <div class="fact"><b>4 trains</b> · 1 night stay</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== JOURNEY ===== -->
+  <div class="sec-head">
+    <h2><span class="dot"></span>The Journey</h2>
+    <div class="note">Times subject to change — verify via IRCTC / Dial 139</div>
+  </div>
+
+  <!-- DAY 1 -->
+  <div class="day">
+    <div class="day-label">
+      <div class="d"><span>SUN</span><b>01</b></div>
+      <div class="dl">Day 1 · Hyderabad → Bengaluru<small>Onward journey begins</small></div>
+    </div>
+
+    <div class="home-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12 12 3l9 9M5 10v10h14V10"/></svg>
+      <div>Leave <b>Pebbles Bay, Miyapur</b> by <b>~04:15</b> for Kacheguda (≈23 km). Pre-book a cab the night before — at that hour the run is light, about <b>45–55 min</b>, putting you at the station with time to spare for the 05:45 departure.</div>
+    </div>
+
+    <!-- Leg 1 -->
+    <div class="leg train">
+      <div class="leg-top">
+        <div class="leg-mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 17l-2 4M16 17l2 4"/><circle cx="8.5" cy="14" r="1" fill="currentColor"/><circle cx="15.5" cy="14" r="1" fill="currentColor"/></svg>
+          Vande Bharat Express · Chair Car
+        </div>
+        <div class="badge wl">Waitlist</div>
+      </div>
+      <div class="od">
+        <div class="stn"><div class="time">05:45</div><div class="name">Kacheguda</div><div class="code">KCG · Hyderabad</div></div>
+        <div class="mid"><div class="dur">8h 15m</div><div class="track"><span class="dotc"></span><span class="ln"></span><span class="dotc"></span></div></div>
+        <div class="stn right"><div class="time">14:00</div><div class="name">Yesvantpur Jn</div><div class="code">YPR · Bengaluru</div></div>
+      </div>
+      <div class="leg-meta">
+        <span class="chip"><b>20703</b> YPR Vande Bharat</span>
+        <span class="chip">PNR <b>4438870715</b></span>
+        <span class="chip">610 km</span>
+        <span class="chip">Veg meals incl.</span>
+        <span class="chip" style="margin-left:auto;">Fare <span class="fare">₹3,315</span></span>
+      </div>
+      <div class="leg-pnr">
+        <button class="pnr-live" data-pnr="4438870715"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Check live PNR status</button>
+        <div class="pnr-result"></div>
+      </div>
+    </div>
+
+    <!-- Bangalore lunch layover (Day 1) -->
+    <div class="plan gold">
+      <div class="plan-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 2v20M16 2c-1.5 0-3 2-3 6s1.5 4 3 4 3 0 3-4-1.5-6-3-6zM16 12v10"/></svg>
+        <div>
+          <div class="t">Bangalore layover · ~7¾ hrs at Yesvantpur</div>
+          <p>You arrive <b>YPR 14:00</b> and the next train also leaves from <b>Yesvantpur (21:47)</b> — same station, so no scramble. Drop bags in the cloak room, then head to <b>Residency Road</b> for a late lunch, where both your choices sit on the same street.</p>
+        </div>
+      </div>
+      <div class="lunch">
+        <div class="lunch-opt"><div class="lo-name">Meghana Foods</div><div class="lo-meta">Residency Road · Andhra biryani · ~₹1,000 for two</div></div>
+        <div class="lunch-opt"><div class="lo-name">Nagarjuna</div><div class="lo-meta">Residency Road, directly opposite Meghana · Andhra meals · ~₹800 for two</div></div>
+      </div>
+      <div class="lunch-note">Both are on Residency Road, face to face — pick whichever has the shorter wait.</div>
+      <div class="ministeps">
+        <div class="ms"><div class="mt">14:00</div><div class="mtxt"><b>Arrive Yesvantpur (YPR)</b><small>Freshen up, leave luggage at the station cloak room / a lounge</small></div></div>
+        <div class="ms"><div class="mt">14:30</div><div class="mtxt"><b>Cab to Residency Road</b> (≈9–10 km)<span class="traffic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>35–50 min in afternoon traffic</span></div></div>
+        <div class="ms"><div class="mt">15:15</div><div class="mtxt"><b>Lunch</b> at Meghana / Nagarjuna<small>Off-peak hour means lighter crowds than a 1 pm rush</small></div></div>
+        <div class="ms"><div class="mt">~20:00</div><div class="mtxt"><b>Head back to Yesvantpur</b><small>Leave a generous buffer — be at YPR by ~21:00 for the 21:47 train</small></div></div>
+      </div>
+    </div>
+
+    <!-- Leg 2 -->
+    <div class="leg train">
+      <div class="leg-top">
+        <div class="leg-mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 17l-2 4M16 17l2 4"/><circle cx="8.5" cy="14" r="1" fill="currentColor"/><circle cx="15.5" cy="14" r="1" fill="currentColor"/></svg>
+          SBC CLT Express · AC 3 Tier
+        </div>
+        <div class="badge wl">Waitlist</div>
+      </div>
+      <div class="od">
+        <div class="stn"><div class="time">21:47</div><div class="name">Yesvantpur Jn</div><div class="code">YPR · Bengaluru</div></div>
+        <div class="mid"><div class="dur">7h 03m</div><div class="track"><span class="dotc"></span><span class="ln"></span><span class="dotc"></span></div></div>
+        <div class="stn right"><div class="time">04:50<sup style="font-size:11px;color:var(--ink-soft);">+1</sup></div><div class="name">Subrahmanya Rd</div><div class="code">SBHR</div></div>
+      </div>
+      <div class="leg-meta">
+        <span class="chip"><b>16511</b> SBC CLT Express</span>
+        <span class="chip">PNR <b>4438870759</b></span>
+        <span class="chip">327 km</span>
+        <span class="chip">Overnight</span>
+        <span class="chip" style="margin-left:auto;">Fare <span class="fare">₹1,275</span></span>
+      </div>
+      <div class="leg-pnr">
+        <button class="pnr-live" data-pnr="4438870759"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Check live PNR status</button>
+        <div class="pnr-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 2 -->
+  <div class="day">
+    <div class="day-label">
+      <div class="d"><span>MON</span><b>02</b></div>
+      <div class="dl">Day 2 · Kukke Subramanya<small>Darshan at Kukke &amp; Dharmasthala</small></div>
+    </div>
+
+    <!-- Hotel -->
+    <div class="leg hotel">
+      <div class="leg-top">
+        <div class="leg-mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg>
+          Stay · Deluxe Room
+        </div>
+        <div class="badge cnf">Confirmed</div>
+      </div>
+      <div class="hotel-body">
+        <div class="hb-main">
+          <h3>De Royale Montana Hotel &amp; Resort</h3>
+          <div class="addr">Kukke, Sulya, Subrahmanya, Karnataka 574238 · ☎ +91 6366 411 655</div>
+          <div class="leg-meta" style="border:none;padding-top:10px;">
+            <span class="chip">Check-in <b>Jun 2</b></span>
+            <span class="chip">Check-out <b>Jun 3</b></span>
+            <span class="chip">2 adults · 1 room</span>
+            <span class="chip">Free WiFi · Parking</span>
+            <span class="chip">Booking <b>2017239286</b></span>
+          </div>
+        </div>
+        <div class="nights"><b>1</b><span>Night</span></div>
+      </div>
+    </div>
+
+    <div class="plan leaf">
+      <div class="plan-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 7v6c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V7l-8-5z"/><path d="M12 7v8M9 11h6"/></svg>
+        <div>
+          <div class="t">Two-temple darshan plan</div>
+          <p>Kukke and <b>Dharmasthala</b> are about <b>45 km / 1½ hrs</b> apart by road. Do Kukke early, drive over for Dharmasthala darshan and its famous free <b>annadanam</b> lunch, then return to rest before the midnight train. Hire a local taxi for the round trip (≈₹2,500–3,000).</p>
+        </div>
+      </div>
+      <div class="ministeps">
+        <div class="ms"><div class="mt">04:50</div><div class="mtxt"><b>Arrive Subrahmanya Rd (SBHR)</b><small>Auto to hotel (≈7 km), check in, freshen up</small></div></div>
+        <div class="ms"><div class="mt">06:30</div><div class="mtxt"><b>Early Kukke Subramanya darshan</b> <a class="mapln" target="_blank" rel="noopener" title="Open in Google Maps" href="https://www.google.com/maps/search/?api=1&query=Kukke%20Sri%20Subramanya%20Temple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.7-6-10a6 6 0 0 1 12 0c0 4.3-6 10-6 10z"/><circle cx="12" cy="11" r="2.5"/></svg></a><small>Beat the queues; the morning crowd is lightest. Sarpa Samskara seekers book ahead</small></div></div>
+        <div class="ms"><div class="mt">09:30</div><div class="mtxt"><b>Drive to Dharmasthala</b> <a class="mapln" target="_blank" rel="noopener" title="Open in Google Maps" href="https://www.google.com/maps/search/?api=1&query=Shri%20Kshetra%20Dharmasthala%20Manjunatha%20Temple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.7-6-10a6 6 0 0 1 12 0c0 4.3-6 10-6 10z"/><circle cx="12" cy="11" r="2.5"/></svg></a> (≈45 km)<span class="traffic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>~1½ hrs on ghat roads</span></div></div>
+        <div class="ms"><div class="mt">11:30</div><div class="mtxt"><b>Sri Manjunatha Swamy darshan</b> + annadanam lunch<small>Temple meals served in the dining hall; modest dress code applies</small></div></div>
+        <div class="ms"><div class="mt">15:00</div><div class="mtxt"><b>Return to Kukke / hotel</b><small>Rest, pack, early dinner</small></div></div>
+        <div class="ms"><div class="mt">23:30</div><div class="mtxt"><b>Head to Subrahmanya Rd station</b><small>For the 00:15 train back — see Day 3</small></div></div>
+      </div>
+    </div>
+
+    <div class="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <div>
+        <div class="t">Confirm temple timings &amp; the taxi the day before</div>
+        <p>Both temples close for an afternoon break — verify darshan hours locally so the Dharmasthala leg lands in an open window. Arrange the round-trip taxi through your hotel desk on arrival. The return train departs Subrahmanya Rd at <b>00:15</b>, so keep the evening calm and rest beforehand.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 3 -->
+  <div class="day">
+    <div class="day-label">
+      <div class="d"><span>TUE</span><b>03</b></div>
+      <div class="dl">Day 3 · Kukke → Bengaluru → Hyderabad<small>Return journey</small></div>
+    </div>
+
+    <!-- Leg 3 -->
+    <div class="leg train">
+      <div class="leg-top">
+        <div class="leg-mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 17l-2 4M16 17l2 4"/><circle cx="8.5" cy="14" r="1" fill="currentColor"/><circle cx="15.5" cy="14" r="1" fill="currentColor"/></svg>
+          Panchaganga Express · AC 2 Tier
+        </div>
+        <div class="badge wl">Waitlist · RLWL</div>
+      </div>
+      <div class="od">
+        <div class="stn"><div class="time">00:15</div><div class="name">Subrahmanya Rd</div><div class="code">SBHR</div></div>
+        <div class="mid"><div class="dur">7h 00m</div><div class="track"><span class="dotc"></span><span class="ln"></span><span class="dotc"></span></div></div>
+        <div class="stn right"><div class="time">07:15</div><div class="name">KSR Bengaluru</div><div class="code">SBC</div></div>
+      </div>
+      <div class="leg-meta">
+        <span class="chip"><b>16596</b> Panchaganga Express</span>
+        <span class="chip">PNR <b>8649076710</b></span>
+        <span class="chip">332 km</span>
+        <span class="chip">Free cancellation</span>
+        <span class="chip" style="margin-left:auto;">Fare <span class="fare">₹1,947</span></span>
+      </div>
+      <div class="leg-pnr">
+        <button class="pnr-live" data-pnr="8649076710"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Check live PNR status</button>
+        <div class="pnr-result"></div>
+      </div>
+    </div>
+
+    <!-- Bangalore lunch layover (Day 3) -->
+    <div class="plan gold">
+      <div class="plan-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 2v20M16 2c-1.5 0-3 2-3 6s1.5 4 3 4 3 0 3-4-1.5-6-3-6zM16 12v10"/></svg>
+        <div>
+          <div class="t">Bangalore day · arrive City (SBC) 07:15, leave from Yelhanka 16:20</div>
+          <p>Heads-up: the two stations are <b>different and far apart</b>. KSR City (SBC / Majestic) is central; <b>Yelhanka (YNK) is ~20 km north</b>. Do an early lunch at Residency Road, then leave a big buffer for the cross-town run up to Yelhanka in afternoon traffic.</p>
+        </div>
+      </div>
+      <div class="lunch">
+        <div class="lunch-opt"><div class="lo-name">Meghana Foods</div><div class="lo-meta">Residency Road · ~6 km from SBC · Andhra biryani</div></div>
+        <div class="lunch-opt"><div class="lo-name">Nagarjuna</div><div class="lo-meta">Residency Road, opposite Meghana · Andhra meals</div></div>
+      </div>
+      <div class="ministeps">
+        <div class="ms"><div class="mt">07:15</div><div class="mtxt"><b>Arrive KSR Bengaluru (SBC)</b><small>Freshen up; stow bags. A short rest / nap if needed</small></div></div>
+        <div class="ms"><div class="mt">11:30</div><div class="mtxt"><b>Cab to Residency Road</b> for an early lunch<span class="traffic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>SBC → Residency Rd ≈ 20–35 min</span></div></div>
+        <div class="ms"><div class="mt">13:30</div><div class="mtxt"><b>Leave for Yelhanka (YNK)</b><span class="traffic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>≈20–22 km · 1–1½ hrs in traffic</span></div></div>
+        <div class="ms"><div class="mt">~15:30</div><div class="mtxt"><b>Reach Yelhanka with buffer</b><small>Comfortably ahead of the 16:20 departure — traffic here is unpredictable, don't cut it fine</small></div></div>
+      </div>
+    </div>
+
+    <!-- Leg 4 -->
+    <div class="leg train">
+      <div class="leg-top">
+        <div class="leg-mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 17l-2 4M16 17l2 4"/><circle cx="8.5" cy="14" r="1" fill="currentColor"/><circle cx="15.5" cy="14" r="1" fill="currentColor"/></svg>
+          YNK – KCG Express · First Class AC (1A)
+        </div>
+        <div class="badge partial">Partly confirmed</div>
+      </div>
+      <div class="od">
+        <div class="stn"><div class="time">16:20</div><div class="name">Yelhanka Jn</div><div class="code">YNK · Bengaluru</div></div>
+        <div class="mid"><div class="dur">12h 40m</div><div class="track"><span class="dotc"></span><span class="ln"></span><span class="dotc"></span></div></div>
+        <div class="stn right"><div class="time">05:00<sup style="font-size:11px;color:var(--ink-soft);">+1</sup></div><div class="name">Kacheguda</div><div class="code">KCG · Hyderabad</div></div>
+      </div>
+      <div class="leg-meta">
+        <span class="chip"><b>17604</b> YNK KCG Express</span>
+        <span class="chip">PNR <b>4758839907</b></span>
+        <span class="chip">651 km</span>
+        <span class="chip">Mounika CNF · Phanindra WL1</span>
+        <span class="chip" style="margin-left:auto;">Fare <span class="fare">₹4,855</span></span>
+      </div>
+      <div class="leg-pnr">
+        <button class="pnr-live" data-pnr="4758839907"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Check live PNR status</button>
+        <div class="pnr-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 4 -->
+  <div class="day">
+    <div class="day-label">
+      <div class="d" style="background:var(--gold);"><span>WED</span><b>04</b></div>
+      <div class="dl">Day 4 · Home<small>Arrive Kacheguda 05:00 — yatra complete</small></div>
+    </div>
+    <div class="home-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12 12 3l9 9M5 10v10h14V10"/></svg>
+      <div>Cab from <b>Kacheguda</b> back to <b>Pebbles Bay, Miyapur</b> (≈23 km, <b>~45–55 min</b>). Booking a cab in advance saves the early-morning wait at the station.</div>
+    </div>
+  </div>
+
+  <!-- ===== EXPENSE TRACKER ===== -->
+  <div class="sec-head" id="expenses">
+    <h2><span class="dot"></span>Expense Tracker</h2>
+    <div class="note">Tap an amount to edit · check off what's paid</div>
+  </div>
+
+  <div class="tracker">
+    <div class="tracker-head">
+      <div class="lt">
+        <div class="l">Total trip cost</div>
+        <div class="v" id="grandTotal">₹0</div>
+      </div>
+      <div class="split">
+        <div class="s"><div class="nm">Per person</div><div class="am" id="perPerson">₹0</div></div>
+        <div class="s"><div class="nm">Still to pay</div><div class="am" id="pending">₹0</div></div>
+      </div>
+    </div>
+    <div class="twrap" id="rows"></div>
+    <div class="add-bar">
+      <input class="a-name" id="newName" placeholder="Add an expense — e.g. Pooja / Seva, Local cab, Food">
+      <input class="a-amt" id="newAmt" type="number" min="0" placeholder="₹ Amount">
+      <select class="a-cat" id="newCat">
+        <option value="Travel">Travel</option>
+        <option value="Stay">Stay</option>
+        <option value="Temple">Temple / Seva</option>
+        <option value="Food">Food</option>
+        <option value="Local">Local transport</option>
+        <option value="Misc">Misc</option>
+      </select>
+      <button class="a-add" id="addBtn">Add</button>
+    </div>
+    <div class="tfoot">
+      <div class="legend">
+        <i><b style="background:var(--saffron)"></b>Travel</i>
+        <i><b style="background:var(--leaf)"></b>Stay</i>
+        <i><b style="background:var(--vermilion)"></b>Temple</i>
+        <i><b style="background:var(--gold)"></b>Food</i>
+        <i><b style="background:#7A6CB0"></b>Local</i>
+        <i><b style="background:#8A8A8A"></b>Misc</i>
+      </div>
+      <button class="reset" id="resetBtn">Reset to defaults</button>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <div class="om2">ॐ</div>
+    Subramanya Subramanya · Safe travels &amp; blessed darshan
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var PNRS = [
+    {pnr:'4438870715', tr:'Vande Bharat Exp · 20703', leg:'Kacheguda → Yesvantpur · Jun 1', st:'Waitlist'},
+    {pnr:'4438870759', tr:'SBC CLT Exp · 16511', leg:'Yesvantpur → Subrahmanya Rd · Jun 1', st:'Waitlist'},
+    {pnr:'8649076710', tr:'Panchaganga Exp · 16596', leg:'Subrahmanya Rd → KSR Bengaluru · Jun 3', st:'Waitlist · RLWL'},
+    {pnr:'4758839907', tr:'YNK KCG Exp · 17604', leg:'Yelhanka → Kacheguda · Jun 3', st:'Mounika CNF · Phanindra WL1'}
+  ];
+  function checkUrl(p){ return 'https://www.confirmtkt.com/pnr-status/'+p; }
+  var API_HOST='irctc-indian-railway-pnr-status.p.rapidapi.com';
+  var API_KEY='05315f17eamsh3b9e27b6823e2d4p1f3043jsnf815d0a064e2';
+
+  function field(o,keys){ for(var i=0;i<keys.length;i++){ var k=keys[i]; if(o&&o[k]!=null&&o[k]!=='') return o[k]; } return null; }
+  function statusClass(s){ s=(s||'').toUpperCase(); if(s.indexOf('CNF')>=0||s.indexOf('CONFIRM')>=0) return 'cnf'; if(s.indexOf('RAC')>=0) return 'rac'; if(s.indexOf('WL')>=0||s.indexOf('WAIT')>=0||s.indexOf('RLWL')>=0||s.indexOf('GNWL')>=0||s.indexOf('PQWL')>=0) return 'wl'; return 'un'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function renderResult(box, json){
+    var d = (json && (json.data||json.Data)) || json || {};
+    var trainNo=field(d,['trainNumber','trainNo','TrainNo']);
+    var trainNm=field(d,['trainName','TrainName']);
+    var doj=field(d,['dateOfJourney','doj','Doj','journeyDate']);
+    var from=field(d,['boardingPoint','sourceStation','from','From','boardingStationName']);
+    var to=field(d,['reservationUpto','destinationStation','to','To','reservationUptoName']);
+    var cls=field(d,['journeyClass','class','Class']);
+    var chart=field(d,['chartStatus','chartPrepared','ChartStatus']);
+    var pax=d.passengerList||d.PassengerStatus||d.passengers||d.PassengerList||[];
+    if(!Array.isArray(pax)) pax=[];
+
+    var html='';
+    var rc=[];
+    if(trainNo||trainNm) rc.push('<div class="rc">Train<b>'+esc([trainNo,trainNm].filter(Boolean).join(' · '))+'</b></div>');
+    if(doj) rc.push('<div class="rc">Date<b>'+esc(doj)+'</b></div>');
+    if(from) rc.push('<div class="rc">From<b>'+esc(from)+'</b></div>');
+    if(to) rc.push('<div class="rc">To<b>'+esc(to)+'</b></div>');
+    if(cls) rc.push('<div class="rc">Class<b>'+esc(cls)+'</b></div>');
+    if(rc.length) html+='<div class="res-grid">'+rc.join('')+'</div>';
+
+    if(chart!=null){
+      var prepared=(String(chart).toUpperCase().indexOf('NOT')<0 && String(chart).toUpperCase().indexOf('FALSE')<0) && chart!==false;
+      html+='<div class="chart '+(prepared?'prep':'notprep')+'">'+(prepared?'✓ Chart prepared':'○ Chart not prepared yet')+'</div>';
+    }
+
+    if(pax.length){
+      html+='<div class="pax">';
+      pax.forEach(function(p,i){
+        var bk=field(p,['bookingStatus','BookingStatus','bookingStatusDetails']);
+        var cur=field(p,['currentStatus','CurrentStatus','currentStatusDetails'])||bk||'—';
+        var no=field(p,['passengerSerialNumber','serialNumber','no'])||(i+1);
+        html+='<div class="pax-row"><div class="pno">'+esc(no)+'</div>'+
+              '<div class="pdesc"><div class="bk">Booked: '+esc(bk||'—')+'</div><div class="cur">'+esc(cur)+'</div></div>'+
+              '<span class="pax-stat '+statusClass(cur)+'">'+esc((statusClass(cur)==='cnf'?'Confirmed':statusClass(cur)==='wl'?'Waitlist':statusClass(cur)==='rac'?'RAC':'Status'))+'</span></div>';
+      });
+      html+='</div>';
+    } else if(!rc.length){
+      html+='<div class="res-err">Couldn’t read the status from the response. Try <a href="'+checkUrl(d.pnrNumber||'')+'" target="_blank" rel="noopener">the official site</a> or dial 139.</div>';
+    }
+    html+='<div class="res-time">Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+'</div>';
+    box.innerHTML=html;
+  }
+
+  function fetchPNR(p, item, btn){
+    var box=item.querySelector('.pnr-result');
+    item.classList.add('open');
+    box.innerHTML='<div class="res-time" style="text-align:left;margin:0;">Fetching live status…</div>';
+    btn.disabled=true;
+    var spinSvg='<svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.2-8.5"/></svg>';
+    var orig=btn.innerHTML; btn.innerHTML=spinSvg+'Loading';
+    fetch('https://'+API_HOST+'/getPNRStatus/'+p,{headers:{'x-rapidapi-host':API_HOST,'x-rapidapi-key':API_KEY}})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(j){ renderResult(box, j); })
+      .catch(function(e){
+        box.innerHTML='<div class="res-err">Live lookup failed ('+esc(e.message)+'). The API may be rate-limited — open <a href="'+checkUrl(p)+'" target="_blank" rel="noopener">the official checker</a> or dial 139.</div>';
+      })
+      .then(function(){ btn.disabled=false; btn.innerHTML=orig; });
+  }
+
+  // Wire the inline "Check live PNR status" button inside each train card
+  document.querySelectorAll('.pnr-live[data-pnr]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.closest('.leg-pnr');
+      if(!item) return;
+      if(item.classList.contains('open')){ item.classList.remove('open'); return; }
+      fetchPNR(btn.getAttribute('data-pnr'), item, btn);
+    });
+  });
+
+  // Drop a Google-Maps pin next to every location name in the plan
+  var MAP = {
+    'Kacheguda':'Kacheguda Railway Station Hyderabad',
+    'Yesvantpur Jn':'Yesvantpur Junction Railway Station Bengaluru',
+    'Subrahmanya Rd':'Subrahmanya Road Railway Station',
+    'KSR Bengaluru':'KSR Bengaluru City Junction Railway Station',
+    'Yelhanka Jn':'Yelhanka Junction Railway Station Bengaluru',
+    'Meghana Foods':'Meghana Foods Residency Road Bengaluru',
+    'Nagarjuna':'Nagarjuna Residency Road Bengaluru',
+    'De Royale Montana Hotel & Resort':'De Royale Montana Hotel Resort Kukke Subramanya'
+  };
+  function pin(query){
+    var a=document.createElement('a');
+    a.className='mapln'; a.target='_blank'; a.rel='noopener';
+    a.title='Open in Google Maps';
+    a.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query);
+    a.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.7-6-10a6 6 0 0 1 12 0c0 4.3-6 10-6 10z"/><circle cx="12" cy="11" r="2.5"/></svg>';
+    return a;
+  }
+  document.querySelectorAll('.od .stn .name, .lunch-opt .lo-name, .hotel-body h3').forEach(function(el){
+    var q = MAP[el.textContent.trim()];
+    if(q){ el.appendChild(document.createTextNode(' ')); el.appendChild(pin(q)); }
+  });
+
+  // Open map links as a real new top-level tab — never inside a frame
+  // (framed Google is refused with X-Frame-Options, which is the “blocked” error)
+  document.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('a[href*="google.com/maps"]') : null;
+    if(!a) return;
+    e.preventDefault();
+    var w = window.open(a.href, '_blank');
+    if(w){ try{ w.opener = null; }catch(_){} }
+    else { try{ window.top.location.href = a.href; }catch(_){ window.location.href = a.href; } }
+  });
+})();
+
+(function(){
+  var CAT = {
+    Travel:{c:'var(--saffron)'}, Stay:{c:'var(--leaf)'}, Temple:{c:'var(--vermilion)'},
+    Food:{c:'var(--gold)'}, Local:{c:'#7A6CB0'}, Misc:{c:'#8A8A8A'}
+  };
+  var DEFAULTS = [
+    {id:'t1', name:'Train · Kacheguda → Yesvantpur (Vande Bharat)', cat:'Travel', amt:3315.40, paid:true},
+    {id:'t2', name:'Train · Yesvantpur → Subrahmanya Rd (CLT Exp)', cat:'Travel', amt:1275.40, paid:true},
+    {id:'h1', name:'Hotel · De Royale Montana (1 night)', cat:'Stay', amt:0, paid:false, hint:'Enter your room tariff'},
+    {id:'t3', name:'Train · Subrahmanya Rd → KSR Bengaluru (Panchaganga)', cat:'Travel', amt:1947.40, paid:true},
+    {id:'t4', name:'Train · Yelhanka → Kacheguda (1A)', cat:'Travel', amt:4855.40, paid:true},
+    {id:'x1', name:'Pooja / Seva at temples', cat:'Temple', amt:0, paid:false},
+    {id:'c1', name:'Cab · Pebbles Bay ↔ Kacheguda (both ways)', cat:'Local', amt:0, paid:false},
+    {id:'c2', name:'Taxi · Kukke ↔ Dharmasthala round trip', cat:'Local', amt:0, paid:false, hint:'~₹2,500–3,000'},
+    {id:'c3', name:'Bangalore cabs · Residency Rd & Yelhanka', cat:'Local', amt:0, paid:false},
+    {id:'f1', name:'Bangalore lunch · Meghana / Nagarjuna', cat:'Food', amt:0, paid:false},
+    {id:'x3', name:'Food & prasadam', cat:'Food', amt:0, paid:false}
+  ];
+  var KEY='kukke_expenses_v2';
+  var data;
+  try{ data = JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!Array.isArray(data)) data = JSON.parse(JSON.stringify(DEFAULTS));
+
+  var rowsEl=document.getElementById('rows');
+  function save(){ localStorage.setItem(KEY, JSON.stringify(data)); }
+  function fmt(n){ return '₹'+Math.round(n).toLocaleString('en-IN'); }
+
+  function render(){
+    rowsEl.innerHTML='';
+    data.forEach(function(it){
+      var row=document.createElement('div');
+      row.className='erow'+(it.paid?' done':'');
+      var tag=(CAT[it.cat]||CAT.Misc).c;
+      row.innerHTML=
+        '<div class="e-check" data-act="paid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></div>'+
+        '<div class="e-name"><div class="nm"></div><div class="ct"><span class="tag" style="background:'+tag+'"></span><span class="catname"></span></div></div>'+
+        '<div class="e-amt"><input type="number" min="0" step="1" value="'+(it.amt||'')+'" '+'></div>'+
+        '<button class="e-del" data-act="del" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>';
+      row.querySelector('.nm').textContent=it.name;
+      row.querySelector('.catname').textContent= it.hint ? (it.cat+' · '+it.hint) : it.cat;
+      var inp=row.querySelector('input');
+      inp.addEventListener('input', function(){ it.amt=parseFloat(inp.value)||0; totals(); save(); });
+      inp.addEventListener('focus', function(){ inp.select(); });
+      row.querySelector('[data-act="paid"]').addEventListener('click', function(){ it.paid=!it.paid; row.classList.toggle('done'); save(); totals(); });
+      row.querySelector('[data-act="del"]').addEventListener('click', function(){ data=data.filter(function(d){return d!==it;}); save(); render(); });
+      rowsEl.appendChild(row);
+    });
+    totals();
+  }
+  function totals(){
+    var total=0, pend=0;
+    data.forEach(function(it){ var a=Number(it.amt)||0; total+=a; if(!it.paid) pend+=a; });
+    document.getElementById('grandTotal').textContent=fmt(total);
+    document.getElementById('perPerson').textContent=fmt(total/2);
+    document.getElementById('pending').textContent=fmt(pend);
+  }
+
+  document.getElementById('addBtn').addEventListener('click', function(){
+    var n=document.getElementById('newName').value.trim();
+    var a=parseFloat(document.getElementById('newAmt').value)||0;
+    var c=document.getElementById('newCat').value;
+    if(!n) return;
+    data.push({id:'u'+Date.now(), name:n, cat:c, amt:a, paid:false});
+    document.getElementById('newName').value=''; document.getElementById('newAmt').value='';
+    save(); render();
+  });
+  document.getElementById('newAmt').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('addBtn').click(); });
+  document.getElementById('newName').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('addBtn').click(); });
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    if(confirm('Reset the tracker to the original bookings? Your added items and edits will be cleared.')){
+      data=JSON.parse(JSON.stringify(DEFAULTS)); save(); render();
+    }
+  });
+
+  render();
+})();
+</script>
+
+<style id="__om-edit-overrides"></style>
+</body>
+</html>

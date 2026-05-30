@@ -1,0 +1,13 @@
+project_id = "kukke-yatra"
+
+[functions.pnr-status]
+verify_jwt = false
+
+[functions.expense-write]
+verify_jwt = false
+
+[functions.seed-pin]
+verify_jwt = true
+
+[functions.attachments]
+verify_jwt = false
