@@ -27,6 +27,7 @@ export function ExpenseTracker() {
 
   const [unlocked, setUnlocked] = useState<boolean>(isUnlocked());
   const [pinOpen, setPinOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
   const [writeErr, setWriteErr] = useState<string | null>(null);
   const [, setTick] = useState(0);
 
@@ -145,10 +146,13 @@ export function ExpenseTracker() {
     }
   }
 
-  async function remove(it: Expense) {
-    const pin = requirePin();
-    if (!pin) return;
-    if (!confirm(`Remove "${it.name}"?`)) return;
+  function remove(it: Expense) {
+    // Even when the session is unlocked, deleting must always re-verify the
+    // PIN. Queue the target and let the PinModal trigger the actual delete.
+    setDeleteTarget(it);
+  }
+
+  async function doDelete(it: Expense, pin: string) {
     const prev = items;
     setItems((rows) => rows.filter((r) => r.id !== it.id));
     setWriteErr(null);
@@ -346,6 +350,22 @@ export function ExpenseTracker() {
           onUnlocked={() => {
             setUnlocked(true);
             setPinOpen(false);
+          }}
+        />
+      )}
+
+      {deleteTarget && (
+        <PinModal
+          mode="confirm"
+          title="Confirm delete"
+          subtitle="Re-enter your PIN to remove this expense"
+          ctaLabel="Delete"
+          itemLabel={deleteTarget.name}
+          onClose={() => setDeleteTarget(null)}
+          onUnlocked={(pin) => {
+            const target = deleteTarget;
+            setDeleteTarget(null);
+            if (target) void doDelete(target, pin);
           }}
         />
       )}

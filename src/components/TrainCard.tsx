@@ -4,6 +4,7 @@ import { TrainIcon } from './icons';
 import { MapPin } from './MapPin';
 import { PnrPanel } from './PnrPanel';
 import { Attachments } from './Attachments';
+import { usePnrBadge } from '../lib/pnrBadgeContext';
 
 interface Props {
   leg: TrainLeg;
@@ -12,6 +13,8 @@ interface Props {
 export function TrainCard({ leg }: Props) {
   const fromPin = MAP_PINS[leg.from.name];
   const toPin = MAP_PINS[leg.to.name];
+  const override = usePnrBadge(leg.pnr);
+  const badge = override ?? leg.badge;
 
   return (
     <div className="leg train">
@@ -20,7 +23,7 @@ export function TrainCard({ leg }: Props) {
           <TrainIcon />
           {leg.mode}
         </div>
-        <div className={`badge ${leg.badge.kind}`}>{leg.badge.text}</div>
+        <div className={`badge ${badge.kind}`}>{badge.text}</div>
       </div>
 
       <div className="od">

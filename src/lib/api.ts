@@ -40,6 +40,30 @@ export async function fetchPnr(pnr: string, opts: { refresh?: boolean } = {}): P
   return callFunction<PnrResponse>('pnr-status', { pnr, refresh: !!opts.refresh });
 }
 
+export interface PnrCacheRow {
+  pnr: string;
+  status_json: any;
+  fetched_at: string;
+}
+
+export async function fetchPnrCacheBatch(pnrs: string[]): Promise<Record<string, PnrCacheRow>> {
+  if (pnrs.length === 0) return {};
+  const { data, error } = await supabase
+    .from('pnr_cache')
+    .select('pnr,status_json,fetched_at')
+    .in('pnr', pnrs);
+  if (error) throw error;
+  const out: Record<string, PnrCacheRow> = {};
+  for (const r of data ?? []) {
+    out[r.pnr] = {
+      pnr: r.pnr,
+      status_json: r.status_json,
+      fetched_at: r.fetched_at,
+    };
+  }
+  return out;
+}
+
 export async function listExpenses(): Promise<Expense[]> {
   const { data, error } = await supabase
     .from('expenses')

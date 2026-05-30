@@ -1,37 +1,18 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { fetchPnr, type PnrResponse } from '../lib/api';
 import { ClockIcon, SpinnerIcon } from './icons';
 import { relativeTime } from '../lib/maps';
 import { roman } from './Ornament';
+import {
+  pickField,
+  statusLabel,
+  summarisePassengers,
+  passengerView,
+} from '../lib/pnrStatus';
+import { usePnrCached, usePnrUpdate } from '../lib/pnrBadgeContext';
 
 interface Props {
   pnr: string;
-}
-
-function pickField(o: any, keys: string[]): any {
-  if (!o) return null;
-  for (const k of keys) {
-    const v = o[k];
-    if (v != null && v !== '') return v;
-  }
-  return null;
-}
-
-type StatusKind = 'cnf' | 'rac' | 'wl' | 'un';
-
-function statusKind(s?: string): StatusKind {
-  const u = String(s ?? '').toUpperCase();
-  if (u.includes('CNF') || u.includes('CONFIRM')) return 'cnf';
-  if (u.includes('RAC')) return 'rac';
-  if (u.includes('WL') || u.includes('WAIT') || u.includes('RLWL') || u.includes('GNWL') || u.includes('PQWL')) return 'wl';
-  return 'un';
-}
-
-function statusLabel(k: StatusKind): string {
-  if (k === 'cnf') return 'Confirmed';
-  if (k === 'wl') return 'Waitlist';
-  if (k === 'rac') return 'RAC';
-  return 'Status';
 }
 
 function checkUrl(p: string): string {
@@ -63,17 +44,6 @@ function PassengerName(p: any): string {
   );
 }
 
-function summary(pax: any[]): { kinds: StatusKind[]; verdict: StatusKind } {
-  const kinds = pax.map((p) =>
-    statusKind(pickField(p, ['currentStatus', 'CurrentStatus', 'currentStatusDetails']) ?? pickField(p, ['bookingStatus', 'BookingStatus'])),
-  );
-  if (kinds.length === 0) return { kinds, verdict: 'un' };
-  if (kinds.every((k) => k === 'cnf')) return { kinds, verdict: 'cnf' };
-  if (kinds.some((k) => k === 'wl')) return { kinds, verdict: 'wl' };
-  if (kinds.some((k) => k === 'rac')) return { kinds, verdict: 'rac' };
-  return { kinds, verdict: kinds[0] };
-}
-
 function TicketBody({ pnr, resp }: { pnr: string; resp: PnrResponse }) {
   const root = resp.status_json ?? {};
   const d = root.data ?? root.Data ?? root;
@@ -97,7 +67,7 @@ function TicketBody({ pnr, resp }: { pnr: string; resp: PnrResponse }) {
     chartPrepared = !upper.includes('NOT') && !upper.includes('FALSE') && chartRaw !== false;
   }
 
-  const { verdict } = summary(pax);
+  const { verdict } = summarisePassengers(pax);
 
   const noBody = !trainNo && !trainNm && !doj && pax.length === 0;
   if (noBody) {
@@ -156,8 +126,9 @@ function TicketBody({ pnr, resp }: { pnr: string; resp: PnrResponse }) {
           {doj && <span className="tt-meta-i">Date · <b>{doj}</b></span>}
           {cls && <span className="tt-meta-i">Class · <b>{cls}</b></span>}
           {chartPrepared != null && (
-            <span className={`tt-meta-i chart ${chartPrepared ? 'on' : 'off'}`}>
-              Chart · <b>{chartPrepared ? 'Prepared' : 'Not yet'}</b>
+            <span className={`tt-chart-inline ${chartPrepared ? 'on' : 'off'}`}>
+              <span className="tt-chart-dot" aria-hidden="true" />
+              Chart · <b>{chartPrepared ? 'Prepared' : 'Not prepared yet'}</b>
             </span>
           )}
         </div>
@@ -168,25 +139,49 @@ function TicketBody({ pnr, resp }: { pnr: string; resp: PnrResponse }) {
           <div className="ticket-perf" aria-hidden="true" />
           <div className="ticket-pax">
             {pax.map((p, i) => {
-              const bk = pickField(p, ['bookingStatus', 'BookingStatus', 'bookingStatusDetails']);
-              const cur =
-                pickField(p, ['currentStatus', 'CurrentStatus', 'currentStatusDetails']) ?? bk ?? '—';
+              const v = passengerView(p);
               const name = PassengerName(p);
-              const k = statusKind(cur);
+              const hasAllotment = !!(v.coach || v.berth);
+
+              // Right column content (the "seat" cell) depends on status.
+              let seatNode: React.ReactNode = null;
+              if (hasAllotment) {
+                seatNode = (
+                  <>
+                    {v.coach && (
+                      <span className="tpax-seat-i">
+                        Coach <b>{v.coach}</b>
+                      </span>
+                    )}
+                    {v.berth && (
+                      <span className="tpax-seat-i">
+                        Berth <b>{v.berth}</b>
+                        {v.berthSide ? ` · ${v.berthSide}` : ''}
+                      </span>
+                    )}
+                  </>
+                );
+              } else if (v.kind === 'cnf' && chartPrepared === false) {
+                seatNode = (
+                  <span className="tpax-seat-pending">Seat · pending chart prep</span>
+                );
+              } else if (v.kind === 'cnf') {
+                // Confirmed but chart prepped without allotment data — rare; just say allotted.
+                seatNode = <span className="tpax-seat-pending">Seat · allotted</span>;
+              }
+
               return (
-                <div className={`tpax v-${k}`} key={i}>
+                <div className={`tpax v-${v.kind}`} key={i}>
                   <div className="tpax-no">{roman(i + 1)}</div>
-                  <div className="tpax-main">
+                  <div className="tpax-status">
                     {name && <div className="tpax-name">{name}</div>}
-                    <div className="tpax-line">
-                      <span className="tpax-bk">Booked</span>
-                      <span className="tpax-bkv">{bk ?? '—'}</span>
-                      <span className="tpax-sep">·</span>
-                      <span className="tpax-now">Now</span>
-                      <span className="tpax-nowv">{cur}</span>
-                    </div>
+                    <div className="tpax-code">{v.current}</div>
+                    {v.bookedFrom && (
+                      <div className="tpax-was">was {v.bookedFrom}</div>
+                    )}
                   </div>
-                  <div className={`tpax-stat v-${k}`}>{statusLabel(k)}</div>
+                  <div className="tpax-seat">{seatNode}</div>
+                  <div className={`tpax-stat v-${v.kind}`}>{statusLabel(v.kind)}</div>
                 </div>
               );
             })}
@@ -198,12 +193,30 @@ function TicketBody({ pnr, resp }: { pnr: string; resp: PnrResponse }) {
 }
 
 export function PnrPanel({ pnr }: Props) {
+  const cached = usePnrCached(pnr);
+  const updatePnr = usePnrUpdate();
+
+  const cachedResp = useMemo<PnrResponse | null>(() => {
+    if (!cached) return null;
+    return {
+      status_json: cached.status_json,
+      summary: null,
+      source: null,
+      fetched_at: cached.fetched_at,
+      cached: true,
+    };
+  }, [cached]);
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [resp, setResp] = useState<PnrResponse | null>(null);
+  const [fetched, setFetched] = useState<PnrResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+
+  // Prefer freshly fetched data when available, otherwise show the row we loaded
+  // batch-style on page mount via the PnrBadgeProvider — no extra network on open.
+  const resp = fetched ?? cachedResp;
 
   async function load(refresh: boolean) {
     if (refresh) setRefreshing(true);
@@ -211,7 +224,14 @@ export function PnrPanel({ pnr }: Props) {
     setErr(null);
     try {
       const r = await fetchPnr(pnr, { refresh });
-      setResp(r);
+      setFetched(r);
+      // Push the fresh row up to the provider so the train-card badge
+      // re-derives from the new status_json.
+      updatePnr(pnr, {
+        pnr,
+        status_json: r.status_json,
+        fetched_at: r.fetched_at,
+      });
     } catch (e: any) {
       setErr(e?.message ?? String(e));
     } finally {
@@ -226,6 +246,7 @@ export function PnrPanel({ pnr }: Props) {
       return;
     }
     setOpen(true);
+    // Only hit the network if the batch load didn't already give us this PNR.
     if (!resp) await load(false);
   }
 

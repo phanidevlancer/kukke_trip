@@ -2,12 +2,36 @@ import { useEffect, useRef, useState } from 'react';
 import { verifyPin } from '../lib/api';
 import { unlock } from '../lib/pin';
 
+type Mode = 'unlock' | 'confirm';
+
 interface Props {
   onClose: () => void;
-  onUnlocked: () => void;
+  /** Called once the user enters a valid PIN. Receives the verified PIN
+   *  string so callers in 'confirm' mode (which deliberately doesn't write
+   *  to sessionStorage) can pass it to their write call. */
+  onUnlocked: (pin: string) => void;
+  /** 'unlock' (default) starts/extends a session. 'confirm' re-verifies the
+   *  PIN for a sensitive action without affecting unlock state. */
+  mode?: Mode;
+  /** Override the modal heading (e.g. "Confirm delete"). */
+  title?: string;
+  /** Subtitle, e.g. "Remove this expense permanently". */
+  subtitle?: string;
+  /** CTA label. Defaults: "Unlock" for 'unlock', "Confirm" for 'confirm'. */
+  ctaLabel?: string;
+  /** When provided in 'confirm' mode, shown in the modal as the item being acted on. */
+  itemLabel?: string;
 }
 
-export function PinModal({ onClose, onUnlocked }: Props) {
+export function PinModal({
+  onClose,
+  onUnlocked,
+  mode = 'unlock',
+  title,
+  subtitle,
+  ctaLabel,
+  itemLabel,
+}: Props) {
   const [digits, setDigits] = useState<string[]>(['', '', '', '']);
   const [err, setErr] = useState<string>('');
   const [busy, setBusy] = useState(false);
@@ -70,8 +94,11 @@ export function PinModal({ onClose, onUnlocked }: Props) {
     setErr('');
     try {
       await verifyPin(pin);
-      unlock(pin);
-      onUnlocked();
+      // 'confirm' mode re-verifies without starting a fresh session; we leave
+      // the existing unlock expiry alone so the user isn't surprised by a
+      // refreshed timer just because they deleted something.
+      if (mode !== 'confirm') unlock(pin);
+      onUnlocked(pin);
     } catch (e: any) {
       setShaking(true);
       setTimeout(() => setShaking(false), 450);
@@ -83,18 +110,24 @@ export function PinModal({ onClose, onUnlocked }: Props) {
     }
   }
 
+  const headingText = title ?? (mode === 'confirm' ? 'Confirm with PIN' : 'Enter PIN');
+  const subtitleText =
+    subtitle ?? (mode === 'confirm' ? 'Re-enter your 4-digit PIN to confirm' : '4-digit PIN to edit expenses');
+  const ctaText = ctaLabel ?? (mode === 'confirm' ? 'Confirm' : 'Unlock');
+
   return (
     <div className="pin-overlay" onClick={onClose}>
       <div
-        className={`pin-modal${shaking ? ' shake' : ''}`}
+        className={`pin-modal${shaking ? ' shake' : ''}${mode === 'confirm' ? ' confirm' : ''}`}
         ref={modalRef}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label="Enter expense PIN"
+        aria-label={headingText}
       >
-        <h3>Enter PIN</h3>
-        <p>4-digit PIN to edit expenses</p>
+        <h3>{headingText}</h3>
+        <p>{subtitleText}</p>
+        {itemLabel && <div className="pin-item">{itemLabel}</div>}
         <div className="pin-inputs">
           {digits.map((d, i) => (
             <input
@@ -121,8 +154,12 @@ export function PinModal({ onClose, onUnlocked }: Props) {
           <button onClick={onClose} disabled={busy}>
             Cancel
           </button>
-          <button className="primary" onClick={() => submit(digits.join(''))} disabled={busy || digits.some((d) => d === '')}>
-            Unlock
+          <button
+            className={`primary${mode === 'confirm' ? ' danger' : ''}`}
+            onClick={() => submit(digits.join(''))}
+            disabled={busy || digits.some((d) => d === '')}
+          >
+            {ctaText}
           </button>
         </div>
       </div>

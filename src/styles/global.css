@@ -747,6 +747,22 @@ header.hero {
 .tt-meta-i.chart.on b { color: #41662A; }
 .tt-meta-i.chart.off b { color: #9A7414; }
 
+.tt-chart-inline {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 9px; border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 11.5px; letter-spacing: .03em;
+  font-feature-settings: "tnum", "lnum";
+}
+.tt-chart-inline b { font-weight: 700; margin-left: 2px; }
+.tt-chart-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor;
+  display: inline-block; flex: none;
+}
+.tt-chart-inline.on  { color: #41662A; background: #EEF5E5; border-color: #B6D08C; }
+.tt-chart-inline.off { color: #9A7414; background: #FBF1D8; border-color: #E0C97A; }
+
 /* perforated divider between train block and passenger block */
 .ticket-perf {
   height: 18px;
@@ -766,7 +782,8 @@ header.hero {
   padding: 4px 22px 6px;
 }
 .tpax {
-  display: grid; grid-template-columns: 36px 1fr auto;
+  display: grid;
+  grid-template-columns: 36px minmax(70px, auto) 1fr auto;
   gap: 12px; align-items: center;
   padding: 14px 0;
   border-bottom: 1px dashed var(--line);
@@ -776,19 +793,32 @@ header.hero {
   font-family: 'Marcellus', serif; font-size: 18px; color: var(--vermilion);
   letter-spacing: .04em; text-align: center;
 }
+.tpax-status { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
 .tpax-name {
-  font-family: 'Marcellus', serif; font-size: 16px; color: var(--ink);
-  margin-bottom: 2px;
+  font-family: 'Marcellus', serif; font-size: 13.5px; color: var(--ink);
+  margin-bottom: 1px;
 }
-.tpax-line {
-  font-size: 12px; color: var(--ink-soft);
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
+.tpax-code {
+  font-size: 15px; font-weight: 700; color: var(--ink);
+  letter-spacing: .02em;
   font-feature-settings: "tnum", "lnum";
 }
-.tpax-bk, .tpax-now { font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 10.5px; color: var(--ink-soft); }
-.tpax-bkv { color: var(--ink-soft); }
-.tpax-nowv { color: var(--ink); font-weight: 600; font-size: 13.5px; }
-.tpax-sep { color: var(--line); }
+.tpax-was {
+  font-size: 11px; color: var(--ink-soft); opacity: .75;
+  font-feature-settings: "tnum", "lnum";
+  font-style: italic;
+}
+.tpax-seat {
+  display: flex; flex-direction: column; gap: 1px;
+  font-size: 12px; color: var(--ink-soft);
+  font-feature-settings: "tnum", "lnum";
+  min-width: 0;
+}
+.tpax-seat-i { color: var(--ink-soft); }
+.tpax-seat-i b { color: var(--ink); font-weight: 700; }
+.tpax-seat-pending {
+  font-size: 11.5px; font-style: italic; color: var(--ink-soft); opacity: .9;
+}
 
 .tpax-stat {
   font-family: 'Mukta'; font-size: 11px; font-weight: 700;
@@ -1242,7 +1272,15 @@ footer.foot      { animation-delay: 500ms; }
   .hero-orn { width: 54px; opacity: .7; }
   .hero-orn.top { margin-bottom: 8px; }
   .hero-orn.bottom { display: none; } /* drop the bottom ornament on mobile */
-  .route-pill { margin-top: 12px; padding: 8px 12px; font-size: 12.5px; gap: 4px 8px; }
+  .route-pill {
+    margin-top: 12px; padding: 8px 14px; font-size: 12.5px; gap: 6px;
+    flex-wrap: nowrap; white-space: nowrap;
+    max-width: calc(100vw - 24px);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .route-pill::-webkit-scrollbar { display: none; }
+  .route-pill > * { flex: none; }
   .route-pill .arr { font-size: 11px; }
   .facts { gap: 6px; margin-top: 10px; }
   .fact { font-size: 12px; padding: 6px 11px; flex: 1 1 auto; min-width: 130px; }
@@ -1521,19 +1559,23 @@ footer.foot      { animation-delay: 500ms; }
 
   /* Passenger rows: compress vertical, shrink secondary labels */
   .ticket-pax { padding: 0 12px 2px; }
-  .tpax { grid-template-columns: 20px 1fr auto; padding: 6px 0; gap: 7px; }
+  .tpax {
+    grid-template-columns: 20px minmax(54px, auto) 1fr auto;
+    padding: 7px 0; gap: 8px;
+  }
   .tpax-no { font-size: 13px; }
-  .tpax-name { font-size: 13px; }
-  .tpax-line { gap: 2px 6px; flex-wrap: nowrap; min-width: 0; }
-  .tpax-bk, .tpax-now { font-size: 9px; letter-spacing: .02em; }
-  .tpax-bk { font-size: 0; }
-  .tpax-bk::before { content: "B:"; font-size: 9px; letter-spacing: .04em; opacity: .7; } /* label shrunk */
-  .tpax-now { font-size: 0; }
-  .tpax-now::before { content: "N:"; font-size: 9px; letter-spacing: .04em; opacity: .7; }
-  .tpax-bkv { font-size: 11px; opacity: .75; }            /* booked seat — secondary, dimmer */
-  .tpax-nowv { font-size: 12.5px; }                       /* current status — prominent */
-  .tpax-sep { display: none; }
+  .tpax-name { font-size: 11.5px; margin-bottom: 0; }
+  .tpax-code { font-size: 13px; }
+  .tpax-was { font-size: 9.5px; }
+  .tpax-seat { font-size: 10.5px; }
+  .tpax-seat-i b { font-size: 11px; }
+  .tpax-seat-pending { font-size: 10px; }
   .tpax-stat { font-size: 9.5px; padding: 3px 8px; letter-spacing: .06em; } /* keep pill legible */
+
+  /* Chart pill inline with Date/Class: keep it tight on mobile */
+  .tt-chart-inline { padding: 1px 7px; font-size: 9.5px; gap: 4px; }
+  .tt-chart-inline b { font-size: 10.5px; }
+  .tt-chart-dot { width: 6px; height: 6px; }
 
   /* Foot + details — small */
   .ticket-meta { grid-template-columns: 1fr; gap: 2px 12px; padding: 2px 12px 10px; }
@@ -1639,7 +1681,7 @@ footer.foot      { animation-delay: 500ms; }
   .hero h1 .om { font-size: .42em; }
   .hero h1 .title-line.two { font-size: .72em; }
   .hero .sub { font-size: 13px; }
-  .route-pill { font-size: 11.5px; padding: 7px 11px; }
+  .route-pill { font-size: 11px; padding: 6px 10px; gap: 5px; max-width: calc(100vw - 12px); }
   .facts { gap: 5px; margin-top: 8px; }
   .fact { font-size: 11.5px; padding: 5px 10px; min-width: 0; flex: 1 1 100%; text-align: center; }
   .leg { padding: 11px 11px; margin-bottom: 7px; }

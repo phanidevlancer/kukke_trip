@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { DAYS } from '../data/trip';
 import { TrainCard } from './TrainCard';
 import { HotelCard } from './HotelCard';
 import { PlanCard } from './PlanCard';
 import { HomeIcon, AlertIcon } from './icons';
 import { Ornament, roman } from './Ornament';
+import { PnrBadgeProvider } from '../lib/pnrBadgeContext';
 
 function useDesktopOpenAlerts(ref: React.RefObject<HTMLDivElement>) {
   useEffect(() => {
@@ -31,7 +32,18 @@ export function Timeline() {
   const rootRef = useRef<HTMLDivElement>(null);
   useDesktopOpenAlerts(rootRef);
 
+  const pnrs = useMemo(() => {
+    const out: string[] = [];
+    for (const d of DAYS) {
+      for (const it of d.items) {
+        if (it.kind === 'train' && it.pnr) out.push(it.pnr);
+      }
+    }
+    return out;
+  }, []);
+
   return (
+    <PnrBadgeProvider pnrs={pnrs}>
     <div ref={rootRef}>
       <div className="sec-head">
         <h2>
@@ -93,5 +105,6 @@ export function Timeline() {
         </div>
       ))}
     </div>
+    </PnrBadgeProvider>
   );
 }
