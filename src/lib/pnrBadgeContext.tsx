@@ -52,7 +52,11 @@ export function PnrBadgeProvider({ pnrs, children }: { pnrs: string[]; children:
       const u = await fetchPnrUsage();
       setUsageState(u);
     } catch {
-      // Leave previous value untouched on failure.
+      // On failure, drop into an empty-but-known state so consumers stop
+      // showing a perpetual "loading" indicator. Treats it as "no info" rather
+      // than "haven't tried yet" — the dialog can fall back to letting the
+      // user proceed.
+      setUsageState((prev) => prev ?? []);
     }
   }, []);
 

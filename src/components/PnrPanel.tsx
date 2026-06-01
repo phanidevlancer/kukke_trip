@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { fetchPnr, type PnrResponse, type PnrUsage } from '../lib/api';
 import { ClockIcon, SpinnerIcon } from './icons';
 import { relativeTime } from '../lib/maps';
@@ -36,7 +37,21 @@ function RefreshConfirm({ usage, loading, onConfirm, onCancel }: RefreshConfirmP
   const anyAvailable = remaining == null || remaining > 0;
   const exhausted = remaining != null && remaining <= 0;
 
-  return (
+  // Lock background scroll while the dialog is mounted. Restores the previous
+  // overflow value on unmount so we don't fight other modals or page-level
+  // overflow rules.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  // Render to <body> so the dialog escapes any ancestor with transform/filter
+  // (e.g. .leg:hover) that would otherwise capture position:fixed and pin the
+  // modal inside the card instead of the viewport.
+  return createPortal(
     <div className="pnr-modal-backdrop" onClick={onCancel}>
       <div className="pnr-modal" onClick={(e) => e.stopPropagation()}>
         <div className="pnr-modal-head">
@@ -96,7 +111,8 @@ function RefreshConfirm({ usage, loading, onConfirm, onCancel }: RefreshConfirmP
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -323,6 +339,7 @@ export function PnrPanel({ pnr }: Props) {
   const [err, setErr] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmRefreshing, setConfirmRefreshing] = useState(false);
 
   // Prefer freshly fetched data when available, otherwise show the row we loaded
   // batch-style on page mount via the PnrBadgeProvider — no extra network on open.
@@ -368,7 +385,9 @@ export function PnrPanel({ pnr }: Props) {
     setConfirmOpen(true);
     // Re-poll usage in the background so the dialog reflects state from any
     // other panel's recent refresh. Existing shared value is shown immediately.
-    void refreshUsage();
+    // Only show "Checking quota…" when we have nothing to display yet.
+    if (!sharedUsage) setConfirmRefreshing(true);
+    refreshUsage().finally(() => setConfirmRefreshing(false));
   }
 
   function onConfirmRefresh() {
@@ -399,7 +418,7 @@ export function PnrPanel({ pnr }: Props) {
       {confirmOpen && (
         <RefreshConfirm
           usage={sharedUsage}
-          loading={sharedUsage == null}
+          loading={confirmRefreshing && sharedUsage == null}
           onConfirm={onConfirmRefresh}
           onCancel={() => setConfirmOpen(false)}
         />
