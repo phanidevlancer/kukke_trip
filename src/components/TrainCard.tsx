@@ -5,6 +5,7 @@ import { MapPin } from './MapPin';
 import { PnrPanel } from './PnrPanel';
 import { Attachments } from './Attachments';
 import { usePnrBadge } from '../lib/pnrBadgeContext';
+import { to12h } from '../lib/maps';
 
 interface Props {
   leg: TrainLeg;
@@ -28,7 +29,7 @@ export function TrainCard({ leg }: Props) {
 
       <div className="od">
         <div className="stn">
-          <div className="time">{leg.from.time}</div>
+          <div className="time">{to12h(leg.from.time)}</div>
           <div className="name">
             {leg.from.name}
             {fromPin && <MapPin query={fromPin} />}
@@ -45,7 +46,7 @@ export function TrainCard({ leg }: Props) {
         </div>
         <div className="stn right">
           <div className="time">
-            {leg.to.time}
+            {to12h(leg.to.time)}
             {leg.to.timePlus && (
               <sup style={{ fontSize: 11, color: 'var(--ink-soft)' }}>{leg.to.timePlus}</sup>
             )}

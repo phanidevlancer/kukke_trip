@@ -19,6 +19,12 @@ export interface PnrSummary {
   pnrNumber?: string;
 }
 
+export interface PnrUsage {
+  nick: string;
+  count: number;
+  monthly_limit: number;
+}
+
 export interface PnrResponse {
   status_json: any;
   summary: string | null;
@@ -28,6 +34,7 @@ export interface PnrResponse {
   stale?: boolean;
   error?: string;
   attempts?: Array<{ nick: string; ok: boolean; status?: number; error?: string }>;
+  usage?: PnrUsage[];
 }
 
 async function callFunction<T>(name: string, body: any): Promise<T> {
@@ -38,6 +45,11 @@ async function callFunction<T>(name: string, body: any): Promise<T> {
 
 export async function fetchPnr(pnr: string, opts: { refresh?: boolean } = {}): Promise<PnrResponse> {
   return callFunction<PnrResponse>('pnr-status', { pnr, refresh: !!opts.refresh });
+}
+
+export async function fetchPnrUsage(): Promise<PnrUsage[]> {
+  const r = await callFunction<{ usage: PnrUsage[] }>('pnr-status', { usage_only: true });
+  return r.usage ?? [];
 }
 
 export interface PnrCacheRow {

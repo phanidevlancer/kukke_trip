@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { fetchPnr, type PnrResponse } from '../lib/api';
+import { fetchPnr, type PnrResponse, type PnrUsage } from '../lib/api';
 import { ClockIcon, SpinnerIcon } from './icons';
 import { relativeTime } from '../lib/maps';
 import { roman } from './Ornament';
@@ -9,7 +9,7 @@ import {
   summarisePassengers,
   passengerView,
 } from '../lib/pnrStatus';
-import { usePnrCached, usePnrUpdate } from '../lib/pnrBadgeContext';
+import { usePnrCached, usePnrUpdate, usePnrUsage } from '../lib/pnrBadgeContext';
 
 interface Props {
   pnr: string;
@@ -17,6 +17,114 @@ interface Props {
 
 function checkUrl(p: string): string {
   return `https://www.confirmtkt.com/pnr-status/${p}`;
+}
+
+function totalRemaining(usage: PnrUsage[]): number {
+  return usage.reduce((sum, u) => sum + Math.max(0, u.monthly_limit - u.count), 0);
+}
+
+interface RefreshConfirmProps {
+  usage: PnrUsage[] | null;
+  loading: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function RefreshConfirm({ usage, loading, onConfirm, onCancel }: RefreshConfirmProps) {
+  const hasUsage = !!usage && usage.length > 0;
+  const remaining = hasUsage ? totalRemaining(usage!) : null;
+  const anyAvailable = remaining == null || remaining > 0;
+  const exhausted = remaining != null && remaining <= 0;
+
+  return (
+    <div className="pnr-modal-backdrop" onClick={onCancel}>
+      <div className="pnr-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="pnr-modal-head">
+          <div className="pnr-modal-title">Use one live API call?</div>
+          <button className="pnr-modal-x" onClick={onCancel} aria-label="Close">×</button>
+        </div>
+        <div className="pnr-modal-body">
+          {loading && <div className="pnr-modal-loading">Checking quota…</div>}
+          {!loading && !hasUsage && (
+            <div className="pnr-modal-loading">
+              Couldn't read current quota — the next call will show how much is left.
+            </div>
+          )}
+          {!loading && hasUsage && (
+            <>
+              <div className={`pnr-modal-remaining ${exhausted ? 'none' : ''}`}>
+                <span className="pnr-modal-remaining-n">{remaining}</span>
+                <span className="pnr-modal-remaining-l">calls left this month</span>
+              </div>
+              <div className="pnr-modal-keys">
+                {usage!.map((u) => {
+                  const left = Math.max(0, u.monthly_limit - u.count);
+                  const keyOut = u.count >= u.monthly_limit;
+                  return (
+                    <div key={u.nick} className={`pnr-modal-key ${keyOut ? 'out' : ''}`}>
+                      <span className="pnr-modal-key-n"><b>{u.nick}</b></span>
+                      <span className="pnr-modal-key-bar">
+                        <span
+                          className="pnr-modal-key-fill"
+                          style={{ width: `${Math.min(100, (u.count / u.monthly_limit) * 100)}%` }}
+                        />
+                      </span>
+                      <span className="pnr-modal-key-c">
+                        {u.count}/{u.monthly_limit}
+                        {keyOut ? ' · exhausted' : ` · ${left} left`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {exhausted && (
+                <div className="pnr-modal-warn">
+                  All keys are exhausted for this month. Refreshing will fail.
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <div className="pnr-modal-actions">
+          <button className="pnr-modal-cancel" onClick={onCancel}>Cancel</button>
+          <button
+            className="pnr-modal-go"
+            onClick={onConfirm}
+            disabled={loading || !anyAvailable}
+          >
+            Refresh now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UsageChips({ usage }: { usage: PnrUsage[] }) {
+  if (!usage || usage.length === 0) return null;
+  return (
+    <div className="pnr-usage">
+      {usage.map((u) => {
+        const remaining = Math.max(0, u.monthly_limit - u.count);
+        const exceeded = u.count >= u.monthly_limit;
+        const near = !exceeded && remaining <= 10;
+        const cls = exceeded ? 'exceeded' : near ? 'near' : 'ok';
+        return (
+          <span key={u.nick} className={`pnr-usage-chip ${cls}`} title={`${u.nick}: ${u.count}/${u.monthly_limit} this month`}>
+            <b>{u.nick}</b>
+            <span className="pnr-usage-count">
+              {u.count}/{u.monthly_limit}
+            </span>
+            {exceeded ? (
+              <span className="pnr-usage-tag">exceeded</span>
+            ) : (
+              <span className="pnr-usage-tag">{remaining} left</span>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 function RefreshIcon() {
@@ -195,6 +303,7 @@ function TicketBody({ pnr, resp }: { pnr: string; resp: PnrResponse }) {
 export function PnrPanel({ pnr }: Props) {
   const cached = usePnrCached(pnr);
   const updatePnr = usePnrUpdate();
+  const { usage: sharedUsage, setUsage, refreshUsage } = usePnrUsage();
 
   const cachedResp = useMemo<PnrResponse | null>(() => {
     if (!cached) return null;
@@ -213,6 +322,7 @@ export function PnrPanel({ pnr }: Props) {
   const [fetched, setFetched] = useState<PnrResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Prefer freshly fetched data when available, otherwise show the row we loaded
   // batch-style on page mount via the PnrBadgeProvider — no extra network on open.
@@ -232,6 +342,10 @@ export function PnrPanel({ pnr }: Props) {
         status_json: r.status_json,
         fetched_at: r.fetched_at,
       });
+      // The PNR response carries the authoritative usage state from RapidAPI's
+      // response headers — push that into the shared context so every other
+      // panel (and the refresh dialog) sees the latest counts.
+      if (r.usage && r.usage.length > 0) setUsage(r.usage);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
     } finally {
@@ -250,6 +364,18 @@ export function PnrPanel({ pnr }: Props) {
     if (!resp) await load(false);
   }
 
+  async function onRefreshClick() {
+    setConfirmOpen(true);
+    // Re-poll usage in the background so the dialog reflects state from any
+    // other panel's recent refresh. Existing shared value is shown immediately.
+    void refreshUsage();
+  }
+
+  function onConfirmRefresh() {
+    setConfirmOpen(false);
+    void load(true);
+  }
+
   return (
     <div className={`leg-pnr${open ? ' open' : ''}`}>
       <div className="pnr-actions">
@@ -260,7 +386,7 @@ export function PnrPanel({ pnr }: Props) {
         {open && resp && (
           <button
             className="pnr-refresh"
-            onClick={() => load(true)}
+            onClick={onRefreshClick}
             disabled={refreshing}
             title="Fetch fresh status from RapidAPI"
           >
@@ -269,6 +395,19 @@ export function PnrPanel({ pnr }: Props) {
           </button>
         )}
       </div>
+
+      {confirmOpen && (
+        <RefreshConfirm
+          usage={sharedUsage}
+          loading={sharedUsage == null}
+          onConfirm={onConfirmRefresh}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
+
+      {open && (sharedUsage ?? resp?.usage) && (
+        <UsageChips usage={(sharedUsage ?? resp?.usage)!} />
+      )}
 
       <div className="pnr-result">
         {loading && !resp && (
@@ -326,10 +465,11 @@ export function PnrPanel({ pnr }: Props) {
                     <span className="tm-k">Last checked</span>
                     <span className="tm-v">
                       {new Date(resp.fetched_at).toLocaleString('en-IN', {
-                        hour: '2-digit',
+                        hour: 'numeric',
                         minute: '2-digit',
                         day: '2-digit',
                         month: 'short',
+                        hour12: true,
                       })}
                     </span>
                   </div>

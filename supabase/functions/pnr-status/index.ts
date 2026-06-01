@@ -2,10 +2,17 @@ import { preflight, json } from '../_shared/cors.ts';
 import { serviceClient } from '../_shared/pin.ts';
 
 const API_HOST = 'irctc-indian-railway-pnr-status.p.rapidapi.com';
+const MONTHLY_LIMIT_DEFAULT = 100;
 
 interface ApiKey {
   nick: string;
   key: string;
+}
+
+interface UsageRow {
+  nick: string;
+  count: number;
+  monthly_limit: number;
 }
 
 // Discover RAPIDAPI_KEY_1, RAPIDAPI_KEY_2, ... with optional matching
@@ -24,6 +31,77 @@ function loadKeys(): ApiKey[] {
     if (k) out.push({ nick: 'primary', key: k });
   }
   return out;
+}
+
+function currentMonth(): string {
+  const d = new Date();
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+async function loadUsage(
+  sb: ReturnType<typeof serviceClient>,
+  nicks: string[],
+): Promise<UsageRow[]> {
+  if (nicks.length === 0) return [];
+  const month = currentMonth();
+  const { data } = await sb
+    .from('rapidapi_usage')
+    .select('nick,count,monthly_limit')
+    .eq('month', month)
+    .in('nick', nicks);
+  const found = new Map<string, UsageRow>();
+  for (const r of data ?? []) {
+    found.set(r.nick, {
+      nick: r.nick,
+      count: r.count ?? 0,
+      monthly_limit: r.monthly_limit ?? MONTHLY_LIMIT_DEFAULT,
+    });
+  }
+  return nicks.map(
+    (n) =>
+      found.get(n) ?? { nick: n, count: 0, monthly_limit: MONTHLY_LIMIT_DEFAULT },
+  );
+}
+
+function parseIntHeader(h: string | null): number | null {
+  if (h == null) return null;
+  const n = Number(h);
+  return Number.isFinite(n) ? n : null;
+}
+
+// RapidAPI returns the authoritative quota state on every response:
+//   x-ratelimit-requests-limit:     total allowance for the window (e.g. 100)
+//   x-ratelimit-requests-remaining: how many calls are left after THIS one
+// Persist that so the UI shows the real upstream count, not our local guess.
+async function recordUsageFromHeaders(
+  sb: ReturnType<typeof serviceClient>,
+  nick: string,
+  headers: Headers,
+): Promise<void> {
+  const limit = parseIntHeader(headers.get('x-ratelimit-requests-limit'));
+  const remaining = parseIntHeader(headers.get('x-ratelimit-requests-remaining'));
+  if (limit == null || remaining == null) return;
+  const count = Math.max(0, limit - remaining);
+  const month = currentMonth();
+  await sb
+    .from('rapidapi_usage')
+    .upsert(
+      { nick, month, count, monthly_limit: limit },
+      { onConflict: 'nick,month' },
+    );
+}
+
+function isUpstreamSuccess(body: unknown): boolean {
+  const root = (body as any) ?? {};
+  // Upstream marks failures with success:false even on HTTP 200.
+  if (root.success === false) return false;
+  const d = root.data ?? root.Data ?? root;
+  const pax =
+    d?.passengerList ?? d?.PassengerStatus ?? d?.passengers ?? d?.PassengerList;
+  // A real PNR response always has at least one passenger entry.
+  return Array.isArray(pax) && pax.length > 0;
 }
 
 function summarize(statusJson: unknown): string | null {
@@ -56,25 +134,39 @@ interface FetchAttempt {
 }
 
 async function fetchFromRapidAPI(
+  sb: ReturnType<typeof serviceClient>,
   pnr: string,
   keys: ApiKey[],
+  usage: UsageRow[],
 ): Promise<
   | { ok: true; data: unknown; nick: string; attempts: FetchAttempt[] }
   | { ok: false; attempts: FetchAttempt[] }
 > {
   const attempts: FetchAttempt[] = [];
+  const usageByNick = new Map(usage.map((u) => [u.nick, u]));
   for (const k of keys) {
+    const u = usageByNick.get(k.nick);
+    if (u && u.count >= u.monthly_limit) {
+      attempts.push({ nick: k.nick, ok: false, error: 'monthly_limit_reached' });
+      continue;
+    }
     try {
       const r = await fetch(`https://${API_HOST}/getPNRStatus/${pnr}`, {
         headers: { 'x-rapidapi-host': API_HOST, 'x-rapidapi-key': k.key },
       });
+      // RapidAPI puts the authoritative quota state on every response (success or
+      // failure), so persist it regardless of status code.
+      await recordUsageFromHeaders(sb, k.nick, r.headers);
       if (!r.ok) {
         attempts.push({ nick: k.nick, ok: false, status: r.status });
-        // Only fall through on quota/auth failures; bail for other errors.
         if (r.status === 429 || r.status === 401 || r.status === 403) continue;
         return { ok: false, attempts };
       }
       const data = await r.json();
+      if (!isUpstreamSuccess(data)) {
+        attempts.push({ nick: k.nick, ok: false, status: r.status, error: 'upstream_no_data' });
+        continue;
+      }
       attempts.push({ nick: k.nick, ok: true, status: r.status });
       return { ok: true, data, nick: k.nick, attempts };
     } catch (e) {
@@ -96,27 +188,39 @@ Deno.serve(async (req) => {
     return json({ error: 'invalid_json' }, { status: 400 });
   }
 
+  const sb = serviceClient();
+  const keys = loadKeys();
+  const nicks = keys.map((k) => k.nick);
+
+  // Lightweight mode: just return current usage without touching RapidAPI or the
+  // PNR cache. Used by the UI to render a "you have N calls left" confirmation
+  // dialog before the user actually spends a call.
+  if (body?.usage_only) {
+    const usage = await loadUsage(sb, nicks);
+    return json({ usage });
+  }
+
   const pnr = String(body?.pnr ?? '').trim();
   if (!/^\d{10}$/.test(pnr)) return json({ error: 'invalid_pnr' }, { status: 400 });
   const refresh = !!body?.refresh;
-
-  const sb = serviceClient();
   const { data: cached } = await sb.from('pnr_cache').select('*').eq('pnr', pnr).maybeSingle();
 
   // Cache-first: if we have a cached row and the caller didn't ask for a refresh,
   // return it immediately. Never expires implicitly — the UI controls refresh.
   if (cached && !refresh) {
+    const usage = await loadUsage(sb, nicks);
     return json({
       status_json: cached.status_json,
       summary: cached.summary,
       source: cached.source ?? null,
       fetched_at: cached.fetched_at,
       cached: true,
+      usage,
     });
   }
 
-  const keys = loadKeys();
   if (keys.length === 0) {
+    const usage = await loadUsage(sb, nicks);
     if (cached) {
       return json({
         status_json: cached.status_json,
@@ -126,22 +230,32 @@ Deno.serve(async (req) => {
         cached: true,
         stale: true,
         error: 'no_rapidapi_keys_configured',
+        usage,
       });
     }
-    return json({ error: 'no_rapidapi_keys_configured' }, { status: 500 });
+    return json(
+      { error: 'no_rapidapi_keys_configured', usage },
+      { status: 500 },
+    );
   }
 
-  const result = await fetchFromRapidAPI(pnr, keys);
+  const usageBefore = await loadUsage(sb, nicks);
+  const result = await fetchFromRapidAPI(sb, pnr, keys, usageBefore);
+  const usage = await loadUsage(sb, nicks);
+
   if (result.ok) {
     const summary = summarize(result.data);
     const fetched_at = new Date().toISOString();
-    await sb.from('pnr_cache').upsert({
-      pnr,
-      status_json: result.data,
-      summary,
-      source: result.nick,
-      fetched_at,
-    });
+    await sb.from('pnr_cache').upsert(
+      {
+        pnr,
+        status_json: result.data,
+        summary,
+        source: result.nick,
+        fetched_at,
+      },
+      { onConflict: 'pnr' },
+    );
     return json({
       status_json: result.data,
       summary,
@@ -149,6 +263,7 @@ Deno.serve(async (req) => {
       fetched_at,
       cached: false,
       attempts: result.attempts,
+      usage,
     });
   }
 
@@ -163,10 +278,11 @@ Deno.serve(async (req) => {
       stale: true,
       error: 'all_keys_failed',
       attempts: result.attempts,
+      usage,
     });
   }
   return json(
-    { error: 'all_keys_failed', attempts: result.attempts },
+    { error: 'all_keys_failed', attempts: result.attempts, usage },
     { status: 502 },
   );
 });

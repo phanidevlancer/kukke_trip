@@ -626,6 +626,102 @@ header.hero {
 .pnr-refresh:disabled { opacity: .6; cursor: default; }
 .pnr-refresh svg { width: 14px; height: 14px; }
 
+.pnr-usage {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 10px;
+}
+.pnr-usage-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Mukta'; font-size: 12px; font-weight: 500;
+  padding: 4px 9px; border-radius: 999px;
+  background: var(--paper); border: 1px solid var(--line); color: var(--ink-soft);
+}
+.pnr-usage-chip b { color: var(--ink); font-weight: 600; }
+.pnr-usage-count { font-variant-numeric: tabular-nums; }
+.pnr-usage-tag {
+  font-size: 11px; padding: 1px 7px; border-radius: 999px;
+  background: rgba(0,0,0,.04); color: var(--ink-soft);
+}
+.pnr-usage-chip.near { border-color: #E5B96A; background: #FFF6E2; color: #8A5A12; }
+.pnr-usage-chip.near b { color: #6E4407; }
+.pnr-usage-chip.near .pnr-usage-tag { background: #F1D88B; color: #6E4407; }
+.pnr-usage-chip.exceeded { border-color: #ECC3B2; background: #FBE7DF; color: #A23A24; }
+.pnr-usage-chip.exceeded b { color: #7A2917; }
+.pnr-usage-chip.exceeded .pnr-usage-tag { background: #E0917A; color: #FFF; font-weight: 600; }
+
+.pnr-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(20, 14, 8, .55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999; padding: 16px;
+}
+.pnr-modal {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  width: 100%; max-width: 420px; overflow: hidden;
+  font-family: 'Mukta';
+}
+.pnr-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+.pnr-modal-title { font-weight: 700; font-size: 15px; color: var(--ink); }
+.pnr-modal-x {
+  background: transparent; border: none; cursor: pointer;
+  font-size: 22px; line-height: 1; color: var(--ink-soft); padding: 0 6px;
+}
+.pnr-modal-x:hover { color: var(--ink); }
+.pnr-modal-body { padding: 16px 18px; }
+.pnr-modal-loading { font-size: 13px; color: var(--ink-soft); font-style: italic; }
+.pnr-modal-remaining {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 10px 14px; border-radius: 12px;
+  background: #EAF6E6; border: 1px solid #BFE0B3;
+  margin-bottom: 14px;
+}
+.pnr-modal-remaining.none { background: #FBE7DF; border-color: #ECC3B2; }
+.pnr-modal-remaining-n {
+  font-size: 28px; font-weight: 700; color: var(--leaf);
+  font-variant-numeric: tabular-nums;
+}
+.pnr-modal-remaining.none .pnr-modal-remaining-n { color: #A23A24; }
+.pnr-modal-remaining-l { font-size: 13px; color: var(--ink-soft); }
+.pnr-modal-keys { display: flex; flex-direction: column; gap: 8px; }
+.pnr-modal-key {
+  display: grid; grid-template-columns: 90px 1fr auto; gap: 10px; align-items: center;
+  font-size: 12px; color: var(--ink-soft);
+}
+.pnr-modal-key.out .pnr-modal-key-fill { background: #C8553D; }
+.pnr-modal-key-n b { color: var(--ink); font-weight: 600; }
+.pnr-modal-key-bar {
+  height: 6px; border-radius: 999px; background: var(--paper-2); overflow: hidden;
+  border: 1px solid var(--line);
+}
+.pnr-modal-key-fill {
+  display: block; height: 100%; background: var(--leaf);
+  transition: width .3s;
+}
+.pnr-modal-key-c { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pnr-modal-warn {
+  margin-top: 12px; padding: 9px 12px;
+  background: #FBE7DF; border: 1px solid #ECC3B2; border-radius: 10px;
+  font-size: 12px; color: #A23A24;
+}
+.pnr-modal-actions {
+  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 12px 18px; border-top: 1px solid var(--line); background: var(--paper);
+}
+.pnr-modal-cancel, .pnr-modal-go {
+  font-family: 'Mukta'; font-size: 13px; font-weight: 600;
+  padding: 9px 16px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--line); transition: .15s;
+}
+.pnr-modal-cancel { background: var(--card); color: var(--ink-soft); }
+.pnr-modal-cancel:hover { color: var(--ink); border-color: var(--ink-soft); }
+.pnr-modal-go { background: var(--leaf); color: #fff; border-color: var(--leaf); }
+.pnr-modal-go:hover { filter: brightness(1.08); }
+.pnr-modal-go:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+
 .mapln { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; width: 21px; height: 21px; border-radius: 6px; color: var(--gold); background: var(--paper-2); border: 1px solid var(--line); margin-left: 7px; transition: .15s; text-decoration: none; cursor: pointer; }
 .mapln:hover { color: #fff; background: var(--saffron); border-color: var(--saffron); }
 .mapln svg { width: 12px; height: 12px; }

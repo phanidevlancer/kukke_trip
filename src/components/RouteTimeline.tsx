@@ -7,6 +7,7 @@ import {
   StopBedIcon,
   StopClockIcon,
 } from './icons';
+import { to12h } from '../lib/maps';
 
 interface Props {
   steps: MiniStep[];
@@ -78,7 +79,7 @@ export function RouteTimeline({ steps, theme }: Props) {
                 <IconFor kind={kind} />
               </div>
               <div className="route-card">
-                <div className="route-time">{s.time}</div>
+                <div className="route-time">{to12h(s.time)}</div>
                 <div className="route-body">
                   {s.bold && <b>{s.bold}</b>}
                   {s.mapPin && <MapPin query={s.mapPin} />}

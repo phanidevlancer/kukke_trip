@@ -16,3 +16,6 @@ dist-ssr
 # Supabase local
 supabase/.branches
 supabase/.temp
+
+# Claude Code local workspace
+.claude/
